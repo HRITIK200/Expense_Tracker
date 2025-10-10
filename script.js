@@ -89,7 +89,7 @@ function render() {
     // left side
     const left = document.createElement('div'); left.className = 'tx-left';
     const meta = document.createElement('div'); meta.className = 'tx-meta';
-    const desc = document.createElement('strong'); desc.textContent = tx.description;
+    const desc = document.createElement('strong'); desc.textContent = tx.description + '  ';
     const small = document.createElement('small'); small.textContent = `${tx.category} • ${tx.date || ''}`;
     meta.appendChild(desc); meta.appendChild(small);
 
