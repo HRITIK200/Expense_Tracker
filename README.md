@@ -58,5 +58,15 @@ The app also includes a **visual pie chart** using **Chart.js** to show spending
 
 ---
 
+## ▶️ How to run the project
+
+- **Open directly:** double-click `index.html` to open it in your browser (no build step required).
+
+- **Recommended (VS Code):** install the **Live Server** extension, then right-click `index.html` → _Open with Live Server_.
+
+- **Using a simple server:**
+  - Python: `python -m http.server 8000` → open http://localhost:8000
+  - Node: `npx http-server` → open the printed URL (or install `http-server` globally and run `http-server`)
+
 
 
