@@ -45,16 +45,16 @@ The app also includes a **visual pie chart** using **Chart.js** to show spending
 ## 🖼️ Screenshots
 
 1. Home Page 
-   ![Home Page](./screenshots/Home_Page.png)
+   ![Home Page](./Screenshots/Home_Page.png)
 
 2. Transaction form 
-   ![Transaction form](./screenshots/Transaction_Form.png)
+   ![Transaction form](./Screenshots/Transaction_Form.png)
 
 3. Transaction Table
-   ![Transaction Table](./screenshots/Transaction_Table.png)
+   ![Transaction Table](./Screenshots/Transaction_Table.png)
 
 4. Expense chart view
-   ![Transaction Table](./screenshots/Expense_chart_view.png)
+   ![Transaction Table](./Screenshots/Expense_chart_view.png)
 
 ---
 
