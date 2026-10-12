@@ -1,11 +1,23 @@
 /**
- * Smart Expense Tracker & Budget Manager
- * Production-ready ES6+ Implementation
+ * Smart Expense Tracker & Financial Manager
+ * Comprehensive ES6+ Implementation with Multi-Currency,
+ * Savings Goals, 3-Way Analytics, and Date Grouping.
  */
 
 // ==========================================
 // 1. CONSTANTS & DEFINITIONS
 // ==========================================
+
+const CURRENCIES = {
+  INR: { symbol: '₹', locale: 'en-IN' },
+  USD: { symbol: '$', locale: 'en-US' },
+  EUR: { symbol: '€', locale: 'de-DE' },
+  GBP: { symbol: '£', locale: 'en-GB' },
+  JPY: { symbol: '¥', locale: 'ja-JP' },
+  CAD: { symbol: 'C$', locale: 'en-CA' },
+  AUD: { symbol: 'A$', locale: 'en-AU' },
+  AED: { symbol: 'AED', locale: 'ar-AE' }
+};
 
 const CATEGORIES = {
   expense: [
@@ -30,21 +42,34 @@ const CATEGORIES = {
   ]
 };
 
+const PAYMENT_ICONS = {
+  'UPI / Online': 'fa-qrcode',
+  'Credit Card': 'fa-credit-card',
+  'Debit Card': 'fa-id-card',
+  'Cash': 'fa-money-bill-wave',
+  'Net Banking': 'fa-building-columns'
+};
+
 const QUICK_TAGS = {
   expense: ['Groceries', 'Dinner', 'Uber Cab', 'Electricity Bill', 'Coffee', 'Pharmacy', 'Movie Tickets'],
   income: ['Monthly Salary', 'Client Project', 'Stock Dividend', 'Bonus', 'Consulting']
 };
 
-// Demo sample data for quick start testing
 const SAMPLE_TRANSACTIONS = [
-  { id: 'tx-1', type: 'income', description: 'Monthly Software Salary', category: 'Salary', amount: 85000, date: getRecentDate(1) },
-  { id: 'tx-2', type: 'income', description: 'Freelance Web Design', category: 'Freelance & Gig', amount: 18500, date: getRecentDate(3) },
-  { id: 'tx-3', type: 'expense', description: 'Apartment Rent & Maintenance', category: 'Bills & Utilities', amount: 22000, date: getRecentDate(2) },
-  { id: 'tx-4', type: 'expense', description: 'Supermarket Groceries', category: 'Groceries', amount: 4850, date: getRecentDate(4) },
-  { id: 'tx-5', type: 'expense', description: 'Fine Dining & Cafe', category: 'Food & Dining', amount: 1950, date: getRecentDate(5) },
-  { id: 'tx-6', type: 'expense', description: 'Fuel & Metro Recharge', category: 'Transport & Fuel', amount: 2600, date: getRecentDate(7) },
-  { id: 'tx-7', type: 'expense', description: 'Streaming & Internet Subscriptions', category: 'Entertainment', amount: 1499, date: getRecentDate(9) },
-  { id: 'tx-8', type: 'expense', description: 'Health Insurance Premium', category: 'Health & Medical', amount: 3500, date: getRecentDate(12) }
+  { id: 'tx-1', type: 'income', description: 'Monthly Software Salary', category: 'Salary', amount: 85000, date: getRecentDate(1), paymentMethod: 'Net Banking', notes: '#company' },
+  { id: 'tx-2', type: 'income', description: 'Freelance Web Design', category: 'Freelance & Gig', amount: 18500, date: getRecentDate(3), paymentMethod: 'UPI / Online', notes: 'Client invoice #102' },
+  { id: 'tx-3', type: 'expense', description: 'Apartment Rent & Maintenance', category: 'Bills & Utilities', amount: 22000, date: getRecentDate(2), paymentMethod: 'Net Banking', notes: '#fixed' },
+  { id: 'tx-4', type: 'expense', description: 'Supermarket Groceries', category: 'Groceries', amount: 4850, date: getRecentDate(4), paymentMethod: 'Credit Card', notes: 'Organic store' },
+  { id: 'tx-5', type: 'expense', description: 'Fine Dining & Cafe', category: 'Food & Dining', amount: 1950, date: getRecentDate(5), paymentMethod: 'UPI / Online', notes: 'Weekend dinner' },
+  { id: 'tx-6', type: 'expense', description: 'Fuel & Metro Recharge', category: 'Transport & Fuel', amount: 2600, date: getRecentDate(7), paymentMethod: 'Debit Card', notes: '' },
+  { id: 'tx-7', type: 'expense', description: 'Streaming & Internet Subscriptions', category: 'Entertainment', amount: 1499, date: getRecentDate(9), paymentMethod: 'Credit Card', notes: 'Auto-debit' },
+  { id: 'tx-8', type: 'expense', description: 'Health Insurance Premium', category: 'Health & Medical', amount: 3500, date: getRecentDate(12), paymentMethod: 'Net Banking', notes: 'Tax-deductible' }
+];
+
+const DEFAULT_SAVINGS_GOALS = [
+  { id: 'goal-1', name: 'Emergency Fund (6 Months)', target: 150000, current: 85000 },
+  { id: 'goal-2', name: 'New Laptop & Workstation', target: 80000, current: 48000 },
+  { id: 'goal-3', name: 'Vacation Trip', target: 45000, current: 15000 }
 ];
 
 function getRecentDate(daysAgo) {
@@ -58,8 +83,11 @@ function getRecentDate(daysAgo) {
 // ==========================================
 
 let transactions = loadTransactions();
+let savingsGoals = loadSavingsGoals();
+let currentCurrencyCode = localStorage.getItem('expense_tracker_currency') || 'INR';
 let monthlyBudget = parseFloat(localStorage.getItem('expense_tracker_budget')) || 40000;
 let currentChartMode = 'doughnut';
+let currentViewMode = localStorage.getItem('expense_tracker_view_mode') || 'grouped';
 let chartInstance = null;
 let pendingConfirmAction = null;
 
@@ -80,6 +108,21 @@ function saveTransactions() {
   localStorage.setItem('transactions', JSON.stringify(transactions));
 }
 
+function loadSavingsGoals() {
+  try {
+    const raw = localStorage.getItem('expense_tracker_goals');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {}
+  return [...DEFAULT_SAVINGS_GOALS];
+}
+
+function saveSavingsGoals() {
+  localStorage.setItem('expense_tracker_goals', JSON.stringify(savingsGoals));
+}
+
 // ==========================================
 // 3. DOM ELEMENTS
 // ==========================================
@@ -88,6 +131,10 @@ function saveTransactions() {
 const themeToggleBtn = document.getElementById('themeToggleBtn');
 const themeIcon = document.getElementById('themeIcon');
 const currentDateDisplay = document.getElementById('currentDateDisplay');
+const currencySelect = document.getElementById('currencySelect');
+const openSavingsGoalsBtn = document.getElementById('openSavingsGoalsBtn');
+const printReportBtn = document.getElementById('printReportBtn');
+const shortcutsBtn = document.getElementById('shortcutsBtn');
 
 // Stats & Budget
 const netAmountEl = document.getElementById('netAmount');
@@ -102,33 +149,44 @@ const budgetPercentageEl = document.getElementById('budgetPercentage');
 const budgetProgressBar = document.getElementById('budgetProgressBar');
 const budgetStatusText = document.getElementById('budgetStatusText');
 const editBudgetBtn = document.getElementById('editBudgetBtn');
+const savingsRateValEl = document.getElementById('savingsRateVal');
+const dailyAvgSpendValEl = document.getElementById('dailyAvgSpendVal');
 
 // Add Form
 const txForm = document.getElementById('txForm');
+const formSection = document.getElementById('formSection');
 const typeExpenseRadio = document.getElementById('typeExpense');
 const typeIncomeRadio = document.getElementById('typeIncome');
 const descriptionInput = document.getElementById('description');
 const categorySelect = document.getElementById('category');
 const amountInput = document.getElementById('amount');
+const paymentMethodSelect = document.getElementById('paymentMethod');
 const dateInput = document.getElementById('date');
+const notesInput = document.getElementById('notes');
 const quickTagsList = document.getElementById('quickTagsList');
 const clearFormBtn = document.getElementById('clearForm');
+const fabAddBtn = document.getElementById('fabAddBtn');
 
-// Chart
+// Charts
 const chartCanvas = document.getElementById('expenseChart');
 const chartEmptyState = document.getElementById('chartEmptyState');
 const chartTabs = document.querySelectorAll('.chart-tab');
 const topCategoryValueEl = document.getElementById('topCategoryValue');
+const chartSavingsPaceEl = document.getElementById('chartSavingsPace');
 
 // History & Filters
 const txCountBadge = document.getElementById('txCountBadge');
+const viewGroupedBtn = document.getElementById('viewGroupedBtn');
+const viewFlatBtn = document.getElementById('viewFlatBtn');
 const searchInput = document.getElementById('search');
 const clearSearchBtn = document.getElementById('clearSearchBtn');
 const filterCategorySelect = document.getElementById('filterCategory');
 const filterTypeSelect = document.getElementById('filterType');
+const filterPaymentMethodSelect = document.getElementById('filterPaymentMethod');
 const filterTimeSelect = document.getElementById('filterTime');
 const sortBySelect = document.getElementById('sortBy');
 const txList = document.getElementById('txList');
+const txListGrouped = document.getElementById('txListGrouped');
 const emptyListState = document.getElementById('emptyListState');
 const emptyStateMessage = document.getElementById('emptyStateMessage');
 const loadSampleDataBtn = document.getElementById('loadSampleDataBtn');
@@ -149,7 +207,9 @@ const editTypeIncomeRadio = document.getElementById('editTypeIncome');
 const editDescriptionInput = document.getElementById('editDescription');
 const editCategorySelect = document.getElementById('editCategory');
 const editAmountInput = document.getElementById('editAmount');
+const editPaymentMethodSelect = document.getElementById('editPaymentMethod');
 const editDateInput = document.getElementById('editDate');
+const editNotesInput = document.getElementById('editNotes');
 const closeEditModalBtn = document.getElementById('closeEditModalBtn');
 const cancelEditBtn = document.getElementById('cancelEditBtn');
 
@@ -159,6 +219,18 @@ const budgetForm = document.getElementById('budgetForm');
 const monthlyBudgetInput = document.getElementById('monthlyBudgetInput');
 const closeBudgetModalBtn = document.getElementById('closeBudgetModalBtn');
 const cancelBudgetBtn = document.getElementById('cancelBudgetBtn');
+
+// Savings Modal
+const savingsModal = document.getElementById('savingsModal');
+const closeSavingsModalBtn = document.getElementById('closeSavingsModalBtn');
+const newGoalForm = document.getElementById('newGoalForm');
+const goalNameInput = document.getElementById('goalNameInput');
+const goalTargetInput = document.getElementById('goalTargetInput');
+const savingsGoalsList = document.getElementById('savingsGoalsList');
+
+// Shortcuts Modal
+const shortcutsModal = document.getElementById('shortcutsModal');
+const closeShortcutsModalBtn = document.getElementById('closeShortcutsModalBtn');
 
 // Confirm Modal
 const confirmModal = document.getElementById('confirmModal');
@@ -176,8 +248,10 @@ const toastContainer = document.getElementById('toastContainer');
 
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  initCurrency();
   initDateDisplay();
   initFormDefaults();
+  initViewMode();
   populateCategorySelect(categorySelect, 'expense');
   renderQuickTags('expense');
   bindEvents();
@@ -196,15 +270,24 @@ function applyTheme(theme) {
   localStorage.setItem('expense_tracker_theme', theme);
   if (theme === 'dark') {
     themeIcon.className = 'fa-solid fa-sun';
-    themeToggleBtn.title = 'Switch to Light Mode';
+    themeToggleBtn.title = 'Switch to Light Mode (T)';
   } else {
     themeIcon.className = 'fa-solid fa-moon';
-    themeToggleBtn.title = 'Switch to Dark Mode';
+    themeToggleBtn.title = 'Switch to Dark Mode (T)';
   }
-  // Re-render chart if active so chart text matches theme colors
-  if (chartInstance) {
-    updateChart();
-  }
+  if (chartInstance) updateChart();
+}
+
+function initCurrency() {
+  currencySelect.value = currentCurrencyCode;
+  updateCurrencySymbolLabels();
+}
+
+function updateCurrencySymbolLabels() {
+  const sym = CURRENCIES[currentCurrencyCode]?.symbol || '₹';
+  document.querySelectorAll('.currency-symbol').forEach(el => {
+    el.textContent = sym;
+  });
 }
 
 function initDateDisplay() {
@@ -218,6 +301,16 @@ function initFormDefaults() {
   dateInput.value = today;
 }
 
+function initViewMode() {
+  if (currentViewMode === 'flat') {
+    viewFlatBtn.classList.add('active');
+    viewGroupedBtn.classList.remove('active');
+  } else {
+    viewGroupedBtn.classList.add('active');
+    viewFlatBtn.classList.remove('active');
+  }
+}
+
 // ==========================================
 // 5. EVENT LISTENERS
 // ==========================================
@@ -228,6 +321,27 @@ function bindEvents() {
     const current = document.documentElement.getAttribute('data-theme') || 'light';
     applyTheme(current === 'dark' ? 'light' : 'dark');
   });
+
+  // Currency select
+  currencySelect.addEventListener('change', (e) => {
+    currentCurrencyCode = e.target.value;
+    localStorage.setItem('expense_tracker_currency', currentCurrencyCode);
+    updateCurrencySymbolLabels();
+    renderApp();
+    showToast(`Currency changed to ${currentCurrencyCode} (${CURRENCIES[currentCurrencyCode].symbol})`, 'info');
+  });
+
+  // Savings Goals trigger
+  openSavingsGoalsBtn.addEventListener('click', openSavingsModal);
+  closeSavingsModalBtn.addEventListener('click', () => toggleModal(savingsModal, false));
+  newGoalForm.addEventListener('submit', handleAddSavingsGoal);
+
+  // Print Report
+  printReportBtn.addEventListener('click', () => window.print());
+
+  // Shortcuts Modal
+  shortcutsBtn.addEventListener('click', () => toggleModal(shortcutsModal, true));
+  closeShortcutsModalBtn.addEventListener('click', () => toggleModal(shortcutsModal, false));
 
   // Type change in add form
   typeExpenseRadio.addEventListener('change', () => onTypeChange('expense'));
@@ -245,6 +359,12 @@ function bindEvents() {
   txForm.addEventListener('submit', handleAddTransaction);
   clearFormBtn.addEventListener('click', handleResetForm);
 
+  // Mobile FAB
+  fabAddBtn.addEventListener('click', () => {
+    formSection.scrollIntoView({ behavior: 'smooth' });
+    descriptionInput.focus();
+  });
+
   // Edit Modal events
   closeEditModalBtn.addEventListener('click', () => toggleModal(editModal, false));
   cancelEditBtn.addEventListener('click', () => toggleModal(editModal, false));
@@ -259,10 +379,25 @@ function bindEvents() {
   // Confirm Modal events
   confirmCancelBtn.addEventListener('click', () => toggleModal(confirmModal, false));
   confirmActionBtn.addEventListener('click', () => {
-    if (typeof pendingConfirmAction === 'function') {
-      pendingConfirmAction();
-    }
+    if (typeof pendingConfirmAction === 'function') pendingConfirmAction();
     toggleModal(confirmModal, false);
+  });
+
+  // View Mode switches (Grouped vs Flat)
+  viewGroupedBtn.addEventListener('click', () => {
+    currentViewMode = 'grouped';
+    localStorage.setItem('expense_tracker_view_mode', 'grouped');
+    viewGroupedBtn.classList.add('active');
+    viewFlatBtn.classList.remove('active');
+    renderTransactionList();
+  });
+
+  viewFlatBtn.addEventListener('click', () => {
+    currentViewMode = 'flat';
+    localStorage.setItem('expense_tracker_view_mode', 'flat');
+    viewFlatBtn.classList.add('active');
+    viewGroupedBtn.classList.remove('active');
+    renderTransactionList();
   });
 
   // Chart view switch tabs
@@ -290,6 +425,7 @@ function bindEvents() {
 
   filterCategorySelect.addEventListener('change', renderApp);
   filterTypeSelect.addEventListener('change', renderApp);
+  filterPaymentMethodSelect.addEventListener('change', renderApp);
   filterTimeSelect.addEventListener('change', renderApp);
   sortBySelect.addEventListener('change', renderApp);
 
@@ -303,14 +439,45 @@ function bindEvents() {
   // Sample data button in empty state
   loadSampleDataBtn.addEventListener('click', handleLoadSampleData);
 
-  // Close modals with Escape key or clicking outside backdrop
+  // Keyboard Shortcuts (N, B, S, P, T, /, ?)
   window.addEventListener('keydown', (e) => {
+    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+    const isInputActive = activeTag === 'input' || activeTag === 'select' || activeTag === 'textarea';
+
     if (e.key === 'Escape') {
-      [editModal, budgetModal, confirmModal].forEach(m => toggleModal(m, false));
+      [editModal, budgetModal, savingsModal, shortcutsModal, confirmModal].forEach(m => toggleModal(m, false));
+      return;
+    }
+
+    if (isInputActive) return;
+
+    if (e.key.toLowerCase() === 'n') {
+      e.preventDefault();
+      formSection.scrollIntoView({ behavior: 'smooth' });
+      descriptionInput.focus();
+    } else if (e.key.toLowerCase() === 'b') {
+      e.preventDefault();
+      openBudgetModal();
+    } else if (e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      openSavingsModal();
+    } else if (e.key.toLowerCase() === 'p') {
+      e.preventDefault();
+      window.print();
+    } else if (e.key.toLowerCase() === 't') {
+      e.preventDefault();
+      themeToggleBtn.click();
+    } else if (e.key === '/') {
+      e.preventDefault();
+      searchInput.focus();
+    } else if (e.key === '?') {
+      e.preventDefault();
+      toggleModal(shortcutsModal, true);
     }
   });
 
-  [editModal, budgetModal, confirmModal].forEach(modal => {
+  // Modal backdrop click
+  [editModal, budgetModal, savingsModal, shortcutsModal, confirmModal].forEach(modal => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) toggleModal(modal, false);
     });
@@ -333,9 +500,7 @@ function populateCategorySelect(selectElement, type, selectedValue = '') {
     const opt = document.createElement('option');
     opt.value = c.name;
     opt.textContent = c.name;
-    if (selectedValue && selectedValue === c.name) {
-      opt.selected = true;
-    }
+    if (selectedValue && selectedValue === c.name) opt.selected = true;
     selectElement.appendChild(opt);
   });
 }
@@ -349,7 +514,6 @@ function renderQuickTags(type) {
     chip.textContent = tag;
     chip.addEventListener('click', () => {
       descriptionInput.value = tag;
-      // Also automatically match category if reasonable
       autoMatchCategory(tag, type);
       amountInput.focus();
     });
@@ -386,7 +550,9 @@ function handleAddTransaction(e) {
   const description = descriptionInput.value.trim();
   const category = categorySelect.value;
   const amountVal = parseFloat(amountInput.value);
+  const paymentMethod = paymentMethodSelect.value;
   const dateVal = dateInput.value;
+  const notes = notesInput.value.trim();
 
   if (!description) {
     showToast('Please enter a description.', 'warning');
@@ -412,7 +578,9 @@ function handleAddTransaction(e) {
     description,
     category,
     amount: Math.round(amountVal * 100) / 100,
+    paymentMethod,
     date: dateVal,
+    notes,
     createdAt: Date.now()
   };
 
@@ -463,7 +631,9 @@ function openEditModal(id) {
 
   editDescriptionInput.value = tx.description;
   editAmountInput.value = tx.amount;
+  editPaymentMethodSelect.value = tx.paymentMethod || 'UPI / Online';
   editDateInput.value = tx.date;
+  editNotesInput.value = tx.notes || '';
 
   toggleModal(editModal, true);
 }
@@ -478,7 +648,9 @@ function handleSaveEdit(e) {
   const description = editDescriptionInput.value.trim();
   const category = editCategorySelect.value;
   const amountVal = parseFloat(editAmountInput.value);
+  const paymentMethod = editPaymentMethodSelect.value;
   const dateVal = editDateInput.value;
+  const notes = editNotesInput.value.trim();
 
   if (!description || isNaN(amountVal) || amountVal <= 0 || !dateVal) {
     showToast('Please check the values entered.', 'warning');
@@ -489,7 +661,9 @@ function handleSaveEdit(e) {
   tx.description = description;
   tx.category = category;
   tx.amount = Math.round(amountVal * 100) / 100;
+  tx.paymentMethod = paymentMethod;
   tx.date = dateVal;
+  tx.notes = notes;
 
   saveTransactions();
   renderApp();
@@ -523,7 +697,7 @@ function handleLoadSampleData() {
 }
 
 // ==========================================
-// 8. BUDGET MANAGEMENT
+// 8. BUDGET & SAVINGS GOALS
 // ==========================================
 
 function openBudgetModal() {
@@ -548,7 +722,7 @@ function handleSaveBudget(e) {
 }
 
 function renderBudgetStats() {
-  const currentMonth = new Date().toISOString().slice(0, 7); // 'YYYY-MM'
+  const currentMonth = new Date().toISOString().slice(0, 7);
   const monthlyExpenses = transactions
     .filter(t => t.type === 'expense' && (t.date || '').startsWith(currentMonth))
     .reduce((sum, t) => sum + Number(t.amount), 0);
@@ -576,6 +750,86 @@ function renderBudgetStats() {
     budgetProgressBar.style.width = '0%';
     budgetStatusText.textContent = 'Click "Set Limit" to track your monthly budget.';
   }
+}
+
+// Savings Goals
+function openSavingsModal() {
+  renderSavingsGoals();
+  toggleModal(savingsModal, true);
+}
+
+function handleAddSavingsGoal(e) {
+  e.preventDefault();
+  const name = goalNameInput.value.trim();
+  const target = parseFloat(goalTargetInput.value);
+
+  if (!name || isNaN(target) || target <= 0) {
+    showToast('Please enter a valid goal name and target.', 'warning');
+    return;
+  }
+
+  savingsGoals.push({
+    id: 'goal_' + Date.now().toString(36),
+    name,
+    target: Math.round(target),
+    current: 0
+  });
+
+  saveSavingsGoals();
+  renderSavingsGoals();
+  newGoalForm.reset();
+  showToast(`Goal "${name}" added!`, 'success');
+}
+
+function renderSavingsGoals() {
+  savingsGoalsList.innerHTML = '';
+  if (savingsGoals.length === 0) {
+    savingsGoalsList.innerHTML = '<p class="empty-text">No active savings goals yet. Create one above!</p>';
+    return;
+  }
+
+  savingsGoals.forEach(g => {
+    const pct = Math.min(Math.round((g.current / g.target) * 100), 100);
+    const card = document.createElement('div');
+    card.className = 'goal-item-card';
+    card.innerHTML = `
+      <div class="goal-card-top">
+        <span class="goal-name">${escapeHtml(g.name)}</span>
+        <span class="goal-amounts">${formatCurrency(g.current)} / ${formatCurrency(g.target)} (${pct}%)</span>
+      </div>
+      <div class="goal-progress-wrap">
+        <div class="goal-progress-fill" style="width: ${pct}%;"></div>
+      </div>
+      <div class="goal-card-actions">
+        <button class="btn btn-sm btn-outline add-funds-btn"><i class="fa-solid fa-plus"></i> Add Funds</button>
+        <button class="btn btn-sm btn-danger delete-goal-btn"><i class="fa-solid fa-trash"></i> Delete</button>
+      </div>
+    `;
+
+    card.querySelector('.add-funds-btn').addEventListener('click', () => {
+      const addAmt = prompt(`Add saved funds to "${g.name}":`, '5000');
+      if (addAmt !== null) {
+        const parsed = parseFloat(addAmt);
+        if (!isNaN(parsed) && parsed > 0) {
+          g.current += Math.round(parsed);
+          saveSavingsGoals();
+          renderSavingsGoals();
+          showToast(`Added ${formatCurrency(parsed)} to "${g.name}"!`, 'success');
+        }
+      }
+    });
+
+    card.querySelector('.delete-goal-btn').addEventListener('click', () => {
+      if (confirm(`Delete savings goal "${g.name}"?`)) {
+        savingsGoals = savingsGoals.filter(item => item.id !== g.id);
+        saveSavingsGoals();
+        renderSavingsGoals();
+        showToast('Goal removed.', 'info');
+      }
+    });
+
+    savingsGoalsList.appendChild(card);
+  });
 }
 
 // ==========================================
@@ -624,33 +878,55 @@ function renderSummaryCards() {
     balanceStatusEl.className = 'stat-sub negative';
     balanceStatusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Spending exceeds income';
   }
+
+  // Financial Health Metrics
+  const savingsRate = incomeTotal > 0 ? Math.max(0, Math.round(((incomeTotal - expenseTotal) / incomeTotal) * 100)) : 0;
+  savingsRateValEl.textContent = `${savingsRate}%`;
+
+  const todayDate = new Date();
+  const currentDayOfMonth = todayDate.getDate() || 1;
+  const currentMonthPrefix = todayDate.toISOString().slice(0, 7);
+  const thisMonthExpenses = transactions
+    .filter(t => t.type === 'expense' && (t.date || '').startsWith(currentMonthPrefix))
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const dailyAvg = thisMonthExpenses / currentDayOfMonth;
+  dailyAvgSpendValEl.textContent = formatCurrency(dailyAvg);
+  chartSavingsPaceEl.textContent = `${savingsRate}% Saved`;
 }
 
 function getFilteredTransactions() {
   let result = [...transactions];
 
-  // Search filter
+  // Search
   const query = searchInput.value.trim().toLowerCase();
   if (query) {
     result = result.filter(t =>
       (t.description || '').toLowerCase().includes(query) ||
-      (t.category || '').toLowerCase().includes(query)
+      (t.category || '').toLowerCase().includes(query) ||
+      (t.notes || '').toLowerCase().includes(query)
     );
   }
 
-  // Category filter
+  // Category
   const cat = filterCategorySelect.value;
   if (cat && cat !== 'all') {
     result = result.filter(t => t.category === cat);
   }
 
-  // Type filter
+  // Type
   const type = filterTypeSelect.value;
   if (type && type !== 'all') {
     result = result.filter(t => t.type === type);
   }
 
-  // Time range filter
+  // Payment Method
+  const payment = filterPaymentMethodSelect.value;
+  if (payment && payment !== 'all') {
+    result = result.filter(t => (t.paymentMethod || 'UPI / Online') === payment);
+  }
+
+  // Time Range
   const time = filterTimeSelect.value;
   if (time && time !== 'all') {
     const now = new Date();
@@ -695,14 +971,17 @@ function renderTransactionList() {
 
   txCountBadge.textContent = `${filtered.length} of ${transactions.length}`;
   txList.innerHTML = '';
+  txListGrouped.innerHTML = '';
 
   if (filtered.length === 0) {
     emptyListState.style.display = 'flex';
+    txList.style.display = 'none';
+    txListGrouped.style.display = 'none';
     if (transactions.length === 0) {
       emptyStateMessage.textContent = "You haven't added any transactions yet. Start tracking your expenses today!";
       loadSampleDataBtn.style.display = 'inline-flex';
     } else {
-      emptyStateMessage.textContent = 'No transactions match your current search and filter filters.';
+      emptyStateMessage.textContent = 'No transactions match your current search and filters.';
       loadSampleDataBtn.style.display = 'none';
     }
     return;
@@ -710,47 +989,101 @@ function renderTransactionList() {
 
   emptyListState.style.display = 'none';
 
-  filtered.forEach(tx => {
-    const meta = getCategoryMeta(tx.category, tx.type);
-    const li = document.createElement('li');
-    li.className = 'tx-item';
-    li.dataset.id = tx.id;
+  if (currentViewMode === 'grouped') {
+    txList.style.display = 'none';
+    txListGrouped.style.display = 'flex';
+    renderGroupedTransactionList(filtered);
+  } else {
+    txList.style.display = 'flex';
+    txListGrouped.style.display = 'none';
+    filtered.forEach(tx => txList.appendChild(createTxElement(tx)));
+  }
+}
 
-    li.innerHTML = `
-      <div class="tx-left">
-        <div class="tx-category-icon" style="background: ${meta.color}1a; color: ${meta.color};" title="${tx.category}">
-          <i class="fa-solid ${meta.icon}"></i>
-        </div>
-        <div class="tx-info">
-          <span class="tx-description" title="${escapeHtml(tx.description)}">${escapeHtml(tx.description)}</span>
-          <div class="tx-meta">
-            <span class="tx-category-tag">${escapeHtml(tx.category)}</span>
-            <span>•</span>
-            <span><i class="fa-regular fa-calendar"></i> ${formatDisplayDate(tx.date)}</span>
-          </div>
-        </div>
-      </div>
-      <div class="tx-right">
-        <span class="tx-amount ${tx.type}">
-          ${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.amount)}
-        </span>
-        <div class="tx-actions">
-          <button class="action-icon-btn edit" title="Edit transaction" aria-label="Edit transaction">
-            <i class="fa-solid fa-pen"></i>
-          </button>
-          <button class="action-icon-btn delete" title="Delete transaction" aria-label="Delete transaction">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </div>
-      </div>
+function renderGroupedTransactionList(items) {
+  // Group items by date
+  const groups = {};
+  items.forEach(t => {
+    const d = t.date || 'No Date';
+    if (!groups[d]) groups[d] = [];
+    groups[d].push(t);
+  });
+
+  const dates = Object.keys(groups); // Already sorted if items was sorted by date
+  dates.forEach(dateStr => {
+    const txGroup = groups[dateStr];
+    let dayIncome = 0;
+    let dayExpense = 0;
+    txGroup.forEach(t => {
+      if (t.type === 'income') dayIncome += Number(t.amount);
+      else dayExpense += Number(t.amount);
+    });
+    const dayNet = dayIncome - dayExpense;
+
+    const groupWrap = document.createElement('div');
+    groupWrap.className = 'tx-date-group';
+
+    const header = document.createElement('div');
+    header.className = 'tx-date-header';
+    header.innerHTML = `
+      <span><i class="fa-regular fa-calendar-check"></i> ${formatFriendlyDate(dateStr)} (${txGroup.length} items)</span>
+      <span class="day-subtotal ${dayNet >= 0 ? 'pos' : 'neg'}">
+        Day Net: ${dayNet >= 0 ? '+' : ''}${formatCurrency(dayNet)}
+      </span>
     `;
 
-    // Event handlers for actions
-    li.querySelector('.edit').addEventListener('click', () => openEditModal(tx.id));
-    li.querySelector('.delete').addEventListener('click', () => deleteTransaction(tx.id));
+    const ul = document.createElement('ul');
+    ul.className = 'tx-list';
+    txGroup.forEach(tx => ul.appendChild(createTxElement(tx)));
 
-    txList.appendChild(li);
+    groupWrap.appendChild(header);
+    groupWrap.appendChild(ul);
+    txListGrouped.appendChild(groupWrap);
   });
+}
+
+function createTxElement(tx) {
+  const meta = getCategoryMeta(tx.category, tx.type);
+  const paymentIcon = PAYMENT_ICONS[tx.paymentMethod] || 'fa-credit-card';
+  const li = document.createElement('li');
+  li.className = 'tx-item';
+  li.dataset.id = tx.id;
+
+  li.innerHTML = `
+    <div class="tx-left">
+      <div class="tx-category-icon" style="background: ${meta.color}1a; color: ${meta.color};" title="${tx.category}">
+        <i class="fa-solid ${meta.icon}"></i>
+      </div>
+      <div class="tx-info">
+        <span class="tx-description" title="${escapeHtml(tx.description)}">${escapeHtml(tx.description)}</span>
+        <div class="tx-meta">
+          <span class="tx-category-tag">${escapeHtml(tx.category)}</span>
+          <span class="tx-payment-tag"><i class="fa-solid ${paymentIcon}"></i> ${escapeHtml(tx.paymentMethod || 'UPI / Online')}</span>
+          <span>•</span>
+          <span>${formatDisplayDate(tx.date)}</span>
+          ${tx.notes ? `<span class="tx-notes-tag">• ${escapeHtml(tx.notes)}</span>` : ''}
+        </div>
+      </div>
+    </div>
+    <div class="tx-right">
+      <span class="tx-amount ${tx.type}">
+        ${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.amount)}
+      </span>
+      <div class="tx-actions">
+        <button class="action-icon-btn edit" title="Edit transaction" aria-label="Edit transaction">
+          <i class="fa-solid fa-pen"></i>
+        </button>
+        <button class="action-icon-btn delete" title="Delete transaction" aria-label="Delete transaction">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  `;
+
+  li.querySelector('.edit').addEventListener('click', () => openEditModal(tx.id));
+  li.querySelector('.delete').addEventListener('click', () => deleteTransaction(tx.id));
+
+  return li;
 }
 
 function updateCategoryFilterDropdown() {
@@ -768,7 +1101,7 @@ function updateCategoryFilterDropdown() {
 }
 
 // ==========================================
-// 10. CHART.JS ANALYTICS ENGINE
+// 10. CHART.JS 3-WAY ANALYTICS ENGINE
 // ==========================================
 
 function updateChart() {
@@ -780,13 +1113,14 @@ function updateChart() {
 
   if (currentChartMode === 'doughnut') {
     renderCategoryDoughnutChart(textColor);
-  } else {
+  } else if (currentChartMode === 'bar') {
     renderCashflowBarChart(textColor, gridColor);
+  } else {
+    renderBalanceTrendChart(textColor, gridColor);
   }
 }
 
 function renderCategoryDoughnutChart(textColor) {
-  // Aggregate expenses by category
   const expenseTransactions = transactions.filter(t => t.type === 'expense');
   const catTotals = {};
 
@@ -797,7 +1131,6 @@ function renderCategoryDoughnutChart(textColor) {
   const categories = Object.keys(catTotals);
   const dataValues = categories.map(c => Math.round(catTotals[c] * 100) / 100);
 
-  // Top category display
   if (categories.length > 0) {
     let topCat = categories[0];
     let maxVal = catTotals[topCat];
@@ -850,7 +1183,7 @@ function renderCategoryDoughnutChart(textColor) {
           position: 'right',
           labels: {
             boxWidth: 12,
-            padding: 12,
+            padding: 10,
             color: textColor,
             font: { family: 'Inter', size: 11, weight: '500' }
           }
@@ -873,20 +1206,14 @@ function renderCategoryDoughnutChart(textColor) {
 }
 
 function renderCashflowBarChart(textColor, gridColor) {
-  // Aggregate income and expense by last 6 months or all months
   const monthlyData = {};
 
   transactions.forEach(t => {
     if (!t.date) return;
-    const month = t.date.slice(0, 7); // 'YYYY-MM'
-    if (!monthlyData[month]) {
-      monthlyData[month] = { income: 0, expense: 0 };
-    }
-    if (t.type === 'income') {
-      monthlyData[month].income += Number(t.amount);
-    } else {
-      monthlyData[month].expense += Number(t.amount);
-    }
+    const month = t.date.slice(0, 7);
+    if (!monthlyData[month]) monthlyData[month] = { income: 0, expense: 0 };
+    if (t.type === 'income') monthlyData[month].income += Number(t.amount);
+    else monthlyData[month].expense += Number(t.amount);
   });
 
   const months = Object.keys(monthlyData).sort().slice(-6);
@@ -921,18 +1248,8 @@ function renderCashflowBarChart(textColor, gridColor) {
     data: {
       labels,
       datasets: [
-        {
-          label: 'Income',
-          data: incomeData,
-          backgroundColor: '#10b981',
-          borderRadius: 6
-        },
-        {
-          label: 'Expenses',
-          data: expenseData,
-          backgroundColor: '#ef4444',
-          borderRadius: 6
-        }
+        { label: 'Income', data: incomeData, backgroundColor: '#10b981', borderRadius: 6 },
+        { label: 'Expenses', data: expenseData, backgroundColor: '#ef4444', borderRadius: 6 }
       ]
     },
     options: {
@@ -948,23 +1265,92 @@ function renderCashflowBarChart(textColor, gridColor) {
           ticks: {
             color: textColor,
             font: { family: 'Inter', size: 10 },
-            callback: value => '₹' + value.toLocaleString('en-IN')
+            callback: value => CURRENCIES[currentCurrencyCode].symbol + value.toLocaleString()
           }
         }
       },
       plugins: {
         legend: {
           position: 'top',
-          labels: {
-            boxWidth: 12,
-            padding: 10,
-            color: textColor,
-            font: { family: 'Inter', size: 11 }
-          }
+          labels: { boxWidth: 12, padding: 10, color: textColor, font: { family: 'Inter', size: 11 } }
         },
         tooltip: {
           callbacks: {
             label: context => ` ${context.dataset.label}: ${formatCurrency(context.parsed.y)}`
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderBalanceTrendChart(textColor, gridColor) {
+  // Sort all transactions chronologically to calculate cumulative trajectory
+  const chronological = [...transactions].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+  if (chronological.length === 0) {
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
+    chartCanvas.style.display = 'none';
+    chartEmptyState.style.display = 'flex';
+    return;
+  }
+
+  chartCanvas.style.display = 'block';
+  chartEmptyState.style.display = 'none';
+
+  const labels = [];
+  const balancePoints = [];
+  let currentBalance = 0;
+
+  chronological.forEach(t => {
+    currentBalance += (t.type === 'income' ? Number(t.amount) : -Number(t.amount));
+    labels.push(formatDisplayDate(t.date));
+    balancePoints.push(currentBalance);
+  });
+
+  if (chartInstance) chartInstance.destroy();
+
+  const ctx = chartCanvas.getContext('2d');
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Cumulative Balance',
+        data: balancePoints,
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+        fill: true,
+        tension: 0.35,
+        pointRadius: 3,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: textColor, font: { family: 'Inter', size: 10 }, maxTicksLimit: 7 }
+        },
+        y: {
+          grid: { color: gridColor },
+          ticks: {
+            color: textColor,
+            font: { family: 'Inter', size: 10 },
+            callback: value => CURRENCIES[currentCurrencyCode].symbol + value.toLocaleString()
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: context => ` Net: ${formatCurrency(context.parsed.y)}`
           }
         }
       }
@@ -982,18 +1368,20 @@ function exportToCsv() {
     return;
   }
 
-  const headers = ['ID', 'Type', 'Description', 'Category', 'Amount (INR)', 'Date'];
+  const headers = ['ID', 'Type', 'Description', 'Category', 'Payment Method', `Amount (${currentCurrencyCode})`, 'Date', 'Notes'];
   const rows = transactions.map(t => [
     `"${t.id || ''}"`,
     `"${t.type || ''}"`,
     `"${(t.description || '').replace(/"/g, '""')}"`,
     `"${(t.category || '').replace(/"/g, '""')}"`,
+    `"${(t.paymentMethod || 'UPI / Online').replace(/"/g, '""')}"`,
     t.amount,
-    `"${t.date || ''}"`
+    `"${t.date || ''}"`,
+    `"${(t.notes || '').replace(/"/g, '""')}"`
   ]);
 
   const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
-  downloadFile(csvContent, `expense_tracker_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+  downloadFile(csvContent, `expense_report_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
   showToast('Exported transactions to CSV!', 'success');
 }
 
@@ -1004,7 +1392,7 @@ function exportToJson() {
   }
 
   const jsonContent = JSON.stringify(transactions, null, 2);
-  downloadFile(jsonContent, `expense_tracker_backup_${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
+  downloadFile(jsonContent, `expense_backup_${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
   showToast('Exported backup to JSON!', 'success');
 }
 
@@ -1038,8 +1426,10 @@ function handleImportFile(e) {
             type: item.type === 'income' ? 'income' : 'expense',
             description: String(item.description).trim(),
             category: item.category || 'Others',
+            paymentMethod: item.paymentMethod || 'UPI / Online',
             amount: Math.round(Number(item.amount) * 100) / 100,
             date: item.date || new Date().toISOString().slice(0, 10),
+            notes: item.notes || '',
             createdAt: item.createdAt || Date.now()
           });
           importedCount++;
@@ -1117,7 +1507,8 @@ function showToast(message, type = 'info') {
 
 function formatCurrency(num) {
   const n = Number(num) || 0;
-  return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const curr = CURRENCIES[currentCurrencyCode] || CURRENCIES.INR;
+  return curr.symbol + n.toLocaleString(curr.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function formatDisplayDate(dateStr) {
@@ -1126,10 +1517,22 @@ function formatDisplayDate(dateStr) {
     const parts = dateStr.split('-');
     if (parts.length === 3) {
       const d = new Date(parts[0], parts[1] - 1, parts[2]);
-      return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
     }
   } catch (e) {}
   return dateStr;
+}
+
+function formatFriendlyDate(dateStr) {
+  if (!dateStr) return 'No Date';
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+  if (dateStr === today) return 'Today';
+  if (dateStr === yesterdayStr) return 'Yesterday';
+  return formatDisplayDate(dateStr);
 }
 
 function generateId() {

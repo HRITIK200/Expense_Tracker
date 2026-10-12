@@ -39,17 +39,20 @@ The app features dynamic interactive charts via **Chart.js** (Category Breakdown
 ---
 
 ## 🧠 Features
-✅ **CRUD Operations**: Add, Edit (via sleek modal dialog), and Delete Transactions  
-✅ **Dark & Light Mode**: Seamless theme switching with user preference saved in Local Storage  
-✅ **Monthly Budget Planner**: Set a monthly budget goal with an automated visual progress bar and threshold alerts  
-✅ **Interactive Analytics (Chart.js)**: Toggle between **Expense Category Doughnut** and **Cashflow Bar Chart**  
-✅ **Multi-Criteria Filtering & Sorting**: Filter by Category, Type (Income/Expense), Time Range (Today, Week, Month, Year), and sort by Date or Amount  
-✅ **Quick Suggestion Chips**: Fast 1-click description and category entry  
+✅ **CRUD Operations**: Add, Edit (via sleek modal dialog with payment mode & notes), and Delete Transactions  
+✅ **Multi-Currency Support**: Switch on-the-fly between **₹ INR**, **$ USD**, **€ EUR**, **£ GBP**, **¥ JPY**, **C$ CAD**, **A$ AUD**, and **AED**  
+✅ **Savings Goals Manager**: Set savings targets (Emergency Fund, Vacation, Gadgets) with progress tracking and 1-click fund deposits  
+✅ **Financial Health Metrics**: Auto-calculates your **Savings Rate %** and **Daily Average Spend**  
+✅ **Payment Method Tracking**: Tag payments by **UPI / Online**, **Credit Card**, **Debit Card**, **Cash**, and **Net Banking** with custom icons and filters  
+✅ **3-Way Interactive Analytics (Chart.js)**: Toggle between **Expense Category Doughnut**, **Monthly Cashflow Bar Chart**, and **Cumulative Balance Trend Area Chart**  
+✅ **Date-Grouped Transaction View**: Switch between **Grouped by Date** (with daily net subtotals) and clean **Flat List**  
+✅ **Print & PDF Financial Statement**: 1-click formal Financial Statement generator optimized for paper print or saving to PDF  
+✅ **Dark & Light Mode**: Seamless theme switching with system detection and Local Storage persistence  
+✅ **Monthly Budget Planner**: Set monthly budget goals with progress bar alerts (Safe $\rightarrow$ Warning $\rightarrow$ Exceeded)  
+✅ **Keyboard Shortcuts**: Fast navigation with `N` (New), `B` (Budget), `S` (Savings Goals), `P` (Print), `T` (Theme), `/` (Search), and `?` (Help)  
 ✅ **Export & Import**: Export directly to **CSV** (for Excel/Google Sheets) and **JSON**, with JSON restore support  
-✅ **Toast Notification System**: Modern, non-intrusive feedback toasts replacing browser alerts  
-✅ **Demo Data Loader**: 1-click sample data generator for instant testing  
-✅ **100% Privacy & Offline Ready**: All data remains secure in browser `localStorage`  
-✅ **Universal Device Compatibility**: Optimized for mobile phones (touch targets ≥44px), tablets, laptops, and ultra-wide screens  
+✅ **Mobile Floating Action Button (FAB)**: Quick-access add button for comfortable single-thumb mobile usage  
+✅ **Universal Device Compatibility**: 100% responsive across mobile phones (touch targets $\ge 44\text{px}$), tablets, laptops, and ultra-wide screens  
 
 ---
 ## 🖼️ Screenshots
