@@ -40,7 +40,13 @@ The app features dynamic interactive charts via **Chart.js** (Category Breakdown
 
 ## 🧠 Features
 ✅ **CRUD Operations**: Add, Edit (via sleek modal dialog with payment mode & notes), and Delete Transactions  
+✅ **Smart Financial Insights Ticker**: Automated insights highlighting top expense category, monthly budget health, and largest purchases  
+✅ **Global Command Palette (`Ctrl + K` / `⌘K`)**: Quick-jump search and instant actions launcher across all features  
+✅ **Recurring Bills & Subscriptions Manager**: Track monthly recurring burn (Netflix, Gym, Wifi, Rent) with 1-click "Mark Paid Today" logging  
+✅ **Split Bill & Group Expense Calculator**: Calculate share per person with tip/tax and auto-generate WhatsApp share summaries  
 ✅ **Multi-Currency Support**: Switch on-the-fly between **₹ INR**, **$ USD**, **€ EUR**, **£ GBP**, **¥ JPY**, **C$ CAD**, **A$ AUD**, and **AED**  
+✅ **Customizable Theme Accents**: Choose between **Indigo**, **Emerald**, **Violet**, and **Rose** color palettes  
+✅ **Bulk Selection & Actions**: Multi-select transactions to bulk delete or export selected entries to CSV  
 ✅ **Savings Goals Manager**: Set savings targets (Emergency Fund, Vacation, Gadgets) with progress tracking and 1-click fund deposits  
 ✅ **Financial Health Metrics**: Auto-calculates your **Savings Rate %** and **Daily Average Spend**  
 ✅ **Payment Method Tracking**: Tag payments by **UPI / Online**, **Credit Card**, **Debit Card**, **Cash**, and **Net Banking** with custom icons and filters  
@@ -49,7 +55,7 @@ The app features dynamic interactive charts via **Chart.js** (Category Breakdown
 ✅ **Print & PDF Financial Statement**: 1-click formal Financial Statement generator optimized for paper print or saving to PDF  
 ✅ **Dark & Light Mode**: Seamless theme switching with system detection and Local Storage persistence  
 ✅ **Monthly Budget Planner**: Set monthly budget goals with progress bar alerts (Safe $\rightarrow$ Warning $\rightarrow$ Exceeded)  
-✅ **Keyboard Shortcuts**: Fast navigation with `N` (New), `B` (Budget), `S` (Savings Goals), `P` (Print), `T` (Theme), `/` (Search), and `?` (Help)  
+✅ **Keyboard Shortcuts**: Fast navigation with `Ctrl+K` (Command Palette), `N` (New), `B` (Budget), `S` (Savings Goals), `P` (Print), `T` (Theme), `/` (Search), and `?` (Help)  
 ✅ **Export & Import**: Export directly to **CSV** (for Excel/Google Sheets) and **JSON**, with JSON restore support  
 ✅ **Mobile Floating Action Button (FAB)**: Quick-access add button for comfortable single-thumb mobile usage  
 ✅ **Universal Device Compatibility**: 100% responsive across mobile phones (touch targets $\ge 44\text{px}$), tablets, laptops, and ultra-wide screens  

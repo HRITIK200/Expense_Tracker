@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="light" data-accent="blue">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <meta name="theme-color" content="#2563eb" />
-  <meta name="description" content="Next-generation Expense Tracker & Financial Manager with multi-currency, interactive analytics, budget tracking, savings goals, and PDF reports." />
-  <title>Smart Expense Tracker & Financial Manager</title>
+  <meta name="description" content="Next-generation Expense Tracker & Financial Suite with multi-currency, interactive analytics, budget tracking, recurring subscriptions, split bill calculator, and command palette." />
+  <title>Smart Expense Tracker & Financial Suite</title>
 
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,20 +24,45 @@
   <div class="bg-glow glow-2" aria-hidden="true"></div>
 
   <div class="app-container">
-    <!-- ===== HEADER NAVBAR ===== -->
+    <!-- ===== TOP NOTIFICATION & GREETING BAR ===== -->
+    <div class="top-announcement-bar" id="smartInsightsBar">
+      <div class="insight-badge"><i class="fa-solid fa-sparkles"></i> AI Insights</div>
+      <div class="insight-content" id="smartInsightsContent">
+        <span class="insight-text" id="insightText">Analyzing your recent spending patterns...</span>
+      </div>
+      <button class="insight-refresh-btn" id="refreshInsightsBtn" title="Refresh Insights">
+        <i class="fa-solid fa-rotate"></i>
+      </button>
+    </div>
+
+    <!-- ===== HEADER NAVBAR (FINTECH DASHBOARD HEADER) ===== -->
     <header class="app-header">
-      <div class="brand">
-        <div class="brand-icon">
-          <i class="fa-solid fa-wallet"></i>
-        </div>
-        <div class="brand-text">
-          <h1>Expense Tracker</h1>
-          <div class="live-status-wrap">
-            <span class="live-pulse"></span>
-            <span class="live-date" id="currentDateDisplay"><i class="fa-regular fa-calendar"></i> Today</span>
+      <div class="brand-greeting-wrap">
+        <div class="brand">
+          <div class="brand-icon">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <div class="brand-text">
+            <div class="brand-title-row">
+              <h1>Expense Tracker</h1>
+              <span class="badge-pro">PRO SUITE</span>
+            </div>
+            <div class="live-status-wrap">
+              <span class="greeting-text" id="userGreeting">Good day, Hritik 👋</span>
+              <span class="live-dot-sep">•</span>
+              <span class="live-pulse"></span>
+              <span class="live-date" id="currentDateDisplay"><i class="fa-regular fa-calendar"></i> Today</span>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Quick Command / Search Bar Trigger (Cmd+K) -->
+      <button class="header-cmd-search" id="globalSearchTrigger" title="Quick Command Palette (Press Ctrl+K)">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>Search or Jump to...</span>
+        <kbd class="cmd-kbd">Ctrl K</kbd>
+      </button>
 
       <div class="header-actions">
         <!-- Currency Selector -->
@@ -54,6 +79,28 @@
             <option value="AED" data-symbol="AED">AED</option>
           </select>
         </div>
+
+        <!-- Theme Accent Switcher -->
+        <div class="accent-selector-wrap" title="Theme Color Accent">
+          <select id="accentSelect" aria-label="Theme Accent Color">
+            <option value="blue">🔵 Indigo</option>
+            <option value="emerald">🟢 Emerald</option>
+            <option value="violet">🟣 Violet</option>
+            <option value="rose">🔴 Rose</option>
+          </select>
+        </div>
+
+        <!-- Subscriptions & Bills Trigger -->
+        <button id="openSubscriptionsBtn" class="icon-btn header-pill-btn" title="Recurring Bills & Subscriptions">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span class="btn-text-desktop">Bills</span>
+        </button>
+
+        <!-- Split Bill Calculator Trigger -->
+        <button id="openSplitBillBtn" class="icon-btn header-pill-btn" title="Split Bill Calculator">
+          <i class="fa-solid fa-calculator"></i>
+          <span class="btn-text-desktop">Split</span>
+        </button>
 
         <!-- Savings Goals Trigger Button -->
         <button id="openSavingsGoalsBtn" class="icon-btn header-pill-btn" title="Savings Goals Manager (Press 'S')">
@@ -405,6 +452,18 @@
         </div>
       </div>
 
+      <!-- Bulk Selection Action Bar (appears when items are checked) -->
+      <div id="bulkActionBar" class="bulk-action-bar" style="display: none;">
+        <div class="bulk-info">
+          <input type="checkbox" id="selectAllCheckbox" title="Select all visible transactions" />
+          <span id="selectedCountText">0 selected</span>
+        </div>
+        <div class="bulk-actions">
+          <button id="bulkExportBtn" class="btn btn-sm btn-outline"><i class="fa-solid fa-file-csv"></i> Export Selected</button>
+          <button id="bulkDeleteBtn" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i> Delete Selected</button>
+        </div>
+      </div>
+
       <!-- Transaction Items List Container -->
       <div class="tx-list-container">
         <div id="txListGrouped" class="tx-grouped-container"></div>
@@ -437,6 +496,140 @@
   <button id="fabAddBtn" class="fab-btn" title="Add Transaction" aria-label="Add Transaction">
     <i class="fa-solid fa-plus"></i>
   </button>
+
+  <!-- ===== GLOBAL COMMAND PALETTE (CMD+K) ===== -->
+  <div class="modal-overlay" id="commandPaletteModal" aria-hidden="true" role="dialog">
+    <div class="modal-card cmd-palette-card">
+      <div class="cmd-search-input-wrap">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="cmdPaletteInput" placeholder="Type a command or search transactions..." autocomplete="off" />
+        <kbd class="esc-kbd">ESC</kbd>
+      </div>
+      <div class="cmd-palette-results" id="cmdPaletteResults">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RECURRING BILLS & SUBSCRIPTIONS MODAL ===== -->
+  <div class="modal-overlay" id="subscriptionsModal" aria-hidden="true" role="dialog" aria-labelledby="subscriptionsModalTitle">
+    <div class="modal-card subscriptions-modal-card">
+      <div class="modal-header">
+        <h3 id="subscriptionsModalTitle"><i class="fa-solid fa-arrows-rotate"></i> Recurring Bills & Subscriptions</h3>
+        <button class="modal-close-btn" id="closeSubscriptionsModalBtn" aria-label="Close modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-scroll-body">
+        <div class="sub-summary-banner">
+          <div class="sub-summary-item">
+            <span class="sub-label">Monthly Burn:</span>
+            <span class="sub-value" id="subMonthlyBurn">₹0.00</span>
+          </div>
+          <div class="sub-summary-item">
+            <span class="sub-label">Active Subs:</span>
+            <span class="sub-value" id="subActiveCount">0</span>
+          </div>
+        </div>
+
+        <form id="newSubForm" class="new-sub-form">
+          <h4><i class="fa-solid fa-plus-circle"></i> Track New Subscription</h4>
+          <div class="form-row split-row">
+            <div class="form-group">
+              <label for="subNameInput">Service / Bill Name</label>
+              <input type="text" id="subNameInput" placeholder="e.g. Netflix, Spotify, Gym, Wifi" required />
+            </div>
+            <div class="form-group">
+              <label for="subAmountInput">Amount (<span class="currency-symbol">₹</span>)</label>
+              <input type="number" id="subAmountInput" step="0.01" min="0.01" placeholder="499.00" required />
+            </div>
+          </div>
+          <div class="form-row split-row">
+            <div class="form-group">
+              <label for="subCategorySelect">Category</label>
+              <select id="subCategorySelect">
+                <option value="Entertainment">Entertainment</option>
+                <option value="Bills & Utilities">Bills & Utilities</option>
+                <option value="Health & Medical">Health & Medical</option>
+                <option value="Education">Education</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="subDueDayInput">Billing Day of Month (1-31)</label>
+              <input type="number" id="subDueDayInput" min="1" max="31" placeholder="5" required />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Save Subscription</button>
+        </form>
+
+        <div class="subs-list-wrap">
+          <h4>Active Subscriptions</h4>
+          <div id="subscriptionsList" class="subs-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SPLIT BILL CALCULATOR MODAL ===== -->
+  <div class="modal-overlay" id="splitBillModal" aria-hidden="true" role="dialog" aria-labelledby="splitBillModalTitle">
+    <div class="modal-card split-bill-card">
+      <div class="modal-header">
+        <h3 id="splitBillModalTitle"><i class="fa-solid fa-calculator"></i> Split Bill & Expense Calculator</h3>
+        <button class="modal-close-btn" id="closeSplitBillModalBtn" aria-label="Close modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-form">
+        <div class="form-group">
+          <label for="splitTotalAmount">Total Bill Amount (<span class="currency-symbol">₹</span>)</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-receipt input-icon"></i>
+            <input type="number" id="splitTotalAmount" step="0.01" min="0.01" placeholder="2400.00" />
+          </div>
+        </div>
+
+        <div class="form-row split-row">
+          <div class="form-group">
+            <label for="splitPeopleCount">Number of People</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-users input-icon"></i>
+              <input type="number" id="splitPeopleCount" min="1" value="4" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="splitTipPercent">Tip / Tax (%)</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-percent input-icon"></i>
+              <input type="number" id="splitTipPercent" min="0" value="5" />
+            </div>
+          </div>
+        </div>
+
+        <div class="split-result-box">
+          <div class="split-result-row">
+            <span>Total with Tip:</span>
+            <strong id="splitTotalWithTip">₹0.00</strong>
+          </div>
+          <div class="split-result-row highlight">
+            <span>Each Person Pays:</span>
+            <strong id="splitPerPersonAmount">₹0.00</strong>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" id="copySplitSummaryBtn">
+            <i class="fa-solid fa-copy"></i> Copy Share Text
+          </button>
+          <button type="button" class="btn btn-primary" id="addSplitAsExpenseBtn">
+            <i class="fa-solid fa-arrow-down"></i> Add My Share as Expense
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ===== EDIT TRANSACTION MODAL ===== -->
   <div class="modal-overlay" id="editModal" aria-hidden="true" role="dialog" aria-labelledby="editModalTitle">
@@ -577,6 +770,10 @@
         </button>
       </div>
       <div class="shortcuts-body">
+        <div class="shortcut-item">
+          <span class="shortcut-desc">Open Command Palette</span>
+          <kbd>Ctrl K</kbd>
+        </div>
         <div class="shortcut-item">
           <span class="shortcut-desc">Focus New Transaction form</span>
           <kbd>N</kbd>

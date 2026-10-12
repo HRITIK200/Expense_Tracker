@@ -1,7 +1,7 @@
 /**
- * Smart Expense Tracker & Financial Manager
- * Comprehensive ES6+ Implementation with Multi-Currency,
- * Savings Goals, 3-Way Analytics, and Date Grouping.
+ * Smart Expense Tracker & Financial Suite
+ * Full ES6+ Implementation with AI Insights, Command Palette (Ctrl+K),
+ * Recurring Subscriptions, Split Bill Calculator, Bulk Actions, and Theme Accents.
  */
 
 // ==========================================
@@ -55,6 +55,19 @@ const QUICK_TAGS = {
   income: ['Monthly Salary', 'Client Project', 'Stock Dividend', 'Bonus', 'Consulting']
 };
 
+const DEFAULT_SUBSCRIPTIONS = [
+  { id: 'sub-1', name: 'Netflix Premium 4K', amount: 649, category: 'Entertainment', dueDay: 15 },
+  { id: 'sub-2', name: 'Spotify Duo Family', amount: 149, category: 'Entertainment', dueDay: 20 },
+  { id: 'sub-3', name: 'High-speed Fiber Wifi', amount: 999, category: 'Bills & Utilities', dueDay: 5 },
+  { id: 'sub-4', name: 'Fitness Gym Membership', amount: 1800, category: 'Health & Medical', dueDay: 1 }
+];
+
+const DEFAULT_SAVINGS_GOALS = [
+  { id: 'goal-1', name: 'Emergency Fund (6 Months)', target: 150000, current: 85000 },
+  { id: 'goal-2', name: 'New Laptop & Workstation', target: 80000, current: 48000 },
+  { id: 'goal-3', name: 'Vacation Trip', target: 45000, current: 15000 }
+];
+
 const SAMPLE_TRANSACTIONS = [
   { id: 'tx-1', type: 'income', description: 'Monthly Software Salary', category: 'Salary', amount: 85000, date: getRecentDate(1), paymentMethod: 'Net Banking', notes: '#company' },
   { id: 'tx-2', type: 'income', description: 'Freelance Web Design', category: 'Freelance & Gig', amount: 18500, date: getRecentDate(3), paymentMethod: 'UPI / Online', notes: 'Client invoice #102' },
@@ -64,12 +77,6 @@ const SAMPLE_TRANSACTIONS = [
   { id: 'tx-6', type: 'expense', description: 'Fuel & Metro Recharge', category: 'Transport & Fuel', amount: 2600, date: getRecentDate(7), paymentMethod: 'Debit Card', notes: '' },
   { id: 'tx-7', type: 'expense', description: 'Streaming & Internet Subscriptions', category: 'Entertainment', amount: 1499, date: getRecentDate(9), paymentMethod: 'Credit Card', notes: 'Auto-debit' },
   { id: 'tx-8', type: 'expense', description: 'Health Insurance Premium', category: 'Health & Medical', amount: 3500, date: getRecentDate(12), paymentMethod: 'Net Banking', notes: 'Tax-deductible' }
-];
-
-const DEFAULT_SAVINGS_GOALS = [
-  { id: 'goal-1', name: 'Emergency Fund (6 Months)', target: 150000, current: 85000 },
-  { id: 'goal-2', name: 'New Laptop & Workstation', target: 80000, current: 48000 },
-  { id: 'goal-3', name: 'Vacation Trip', target: 45000, current: 15000 }
 ];
 
 function getRecentDate(daysAgo) {
@@ -84,7 +91,10 @@ function getRecentDate(daysAgo) {
 
 let transactions = loadTransactions();
 let savingsGoals = loadSavingsGoals();
+let subscriptions = loadSubscriptions();
+let selectedTxIds = new Set();
 let currentCurrencyCode = localStorage.getItem('expense_tracker_currency') || 'INR';
+let currentAccent = localStorage.getItem('expense_tracker_accent') || 'blue';
 let monthlyBudget = parseFloat(localStorage.getItem('expense_tracker_budget')) || 40000;
 let currentChartMode = 'doughnut';
 let currentViewMode = localStorage.getItem('expense_tracker_view_mode') || 'grouped';
@@ -123,18 +133,42 @@ function saveSavingsGoals() {
   localStorage.setItem('expense_tracker_goals', JSON.stringify(savingsGoals));
 }
 
+function loadSubscriptions() {
+  try {
+    const raw = localStorage.getItem('expense_tracker_subs');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (err) {}
+  return [...DEFAULT_SUBSCRIPTIONS];
+}
+
+function saveSubscriptions() {
+  localStorage.setItem('expense_tracker_subs', JSON.stringify(subscriptions));
+}
+
 // ==========================================
 // 3. DOM ELEMENTS
 // ==========================================
 
-// Header
-const themeToggleBtn = document.getElementById('themeToggleBtn');
-const themeIcon = document.getElementById('themeIcon');
+// Header & Navigation
+const userGreeting = document.getElementById('userGreeting');
 const currentDateDisplay = document.getElementById('currentDateDisplay');
+const globalSearchTrigger = document.getElementById('globalSearchTrigger');
 const currencySelect = document.getElementById('currencySelect');
+const accentSelect = document.getElementById('accentSelect');
+const openSubscriptionsBtn = document.getElementById('openSubscriptionsBtn');
+const openSplitBillBtn = document.getElementById('openSplitBillBtn');
 const openSavingsGoalsBtn = document.getElementById('openSavingsGoalsBtn');
 const printReportBtn = document.getElementById('printReportBtn');
 const shortcutsBtn = document.getElementById('shortcutsBtn');
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+const themeIcon = document.getElementById('themeIcon');
+
+// Insights bar
+const insightText = document.getElementById('insightText');
+const refreshInsightsBtn = document.getElementById('refreshInsightsBtn');
 
 // Stats & Budget
 const netAmountEl = document.getElementById('netAmount');
@@ -174,7 +208,7 @@ const chartTabs = document.querySelectorAll('.chart-tab');
 const topCategoryValueEl = document.getElementById('topCategoryValue');
 const chartSavingsPaceEl = document.getElementById('chartSavingsPace');
 
-// History & Filters
+// History, Filters & Bulk
 const txCountBadge = document.getElementById('txCountBadge');
 const viewGroupedBtn = document.getElementById('viewGroupedBtn');
 const viewFlatBtn = document.getElementById('viewFlatBtn');
@@ -191,12 +225,47 @@ const emptyListState = document.getElementById('emptyListState');
 const emptyStateMessage = document.getElementById('emptyStateMessage');
 const loadSampleDataBtn = document.getElementById('loadSampleDataBtn');
 
-// Bulk Actions
+// Bulk bar
+const bulkActionBar = document.getElementById('bulkActionBar');
+const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+const selectedCountText = document.getElementById('selectedCountText');
+const bulkExportBtn = document.getElementById('bulkExportBtn');
+const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+
+// Bulk Actions Bar buttons
 const exportCsvBtn = document.getElementById('exportCsvBtn');
 const exportBtn = document.getElementById('exportBtn');
 const importBtn = document.getElementById('importBtn');
 const fileInput = document.getElementById('fileInput');
 const clearAllBtn = document.getElementById('clearAll');
+
+// Command Palette Modal
+const commandPaletteModal = document.getElementById('commandPaletteModal');
+const cmdPaletteInput = document.getElementById('cmdPaletteInput');
+const cmdPaletteResults = document.getElementById('cmdPaletteResults');
+
+// Subscriptions Modal
+const subscriptionsModal = document.getElementById('subscriptionsModal');
+const closeSubscriptionsModalBtn = document.getElementById('closeSubscriptionsModalBtn');
+const subMonthlyBurn = document.getElementById('subMonthlyBurn');
+const subActiveCount = document.getElementById('subActiveCount');
+const newSubForm = document.getElementById('newSubForm');
+const subNameInput = document.getElementById('subNameInput');
+const subAmountInput = document.getElementById('subAmountInput');
+const subCategorySelect = document.getElementById('subCategorySelect');
+const subDueDayInput = document.getElementById('subDueDayInput');
+const subscriptionsList = document.getElementById('subscriptionsList');
+
+// Split Bill Modal
+const splitBillModal = document.getElementById('splitBillModal');
+const closeSplitBillModalBtn = document.getElementById('closeSplitBillModalBtn');
+const splitTotalAmount = document.getElementById('splitTotalAmount');
+const splitPeopleCount = document.getElementById('splitPeopleCount');
+const splitTipPercent = document.getElementById('splitTipPercent');
+const splitTotalWithTip = document.getElementById('splitTotalWithTip');
+const splitPerPersonAmount = document.getElementById('splitPerPersonAmount');
+const copySplitSummaryBtn = document.getElementById('copySplitSummaryBtn');
+const addSplitAsExpenseBtn = document.getElementById('addSplitAsExpenseBtn');
 
 // Edit Modal
 const editModal = document.getElementById('editModal');
@@ -248,7 +317,9 @@ const toastContainer = document.getElementById('toastContainer');
 
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
+  initAccent();
   initCurrency();
+  initGreeting();
   initDateDisplay();
   initFormDefaults();
   initViewMode();
@@ -256,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderQuickTags('expense');
   bindEvents();
   renderApp();
+  renderSmartInsights();
 });
 
 function initTheme() {
@@ -278,6 +350,11 @@ function applyTheme(theme) {
   if (chartInstance) updateChart();
 }
 
+function initAccent() {
+  document.documentElement.setAttribute('data-accent', currentAccent);
+  if (accentSelect) accentSelect.value = currentAccent;
+}
+
 function initCurrency() {
   currencySelect.value = currentCurrencyCode;
   updateCurrencySymbolLabels();
@@ -288,6 +365,23 @@ function updateCurrencySymbolLabels() {
   document.querySelectorAll('.currency-symbol').forEach(el => {
     el.textContent = sym;
   });
+}
+
+function initGreeting() {
+  const hour = new Date().getHours();
+  let timeStr = 'Good day';
+  let emoji = '👋';
+  if (hour < 12) {
+    timeStr = 'Good morning';
+    emoji = '🌅';
+  } else if (hour < 17) {
+    timeStr = 'Good afternoon';
+    emoji = '☀️';
+  } else {
+    timeStr = 'Good evening';
+    emoji = '🌙';
+  }
+  userGreeting.textContent = `${timeStr}, Hritik ${emoji}`;
 }
 
 function initDateDisplay() {
@@ -322,19 +416,50 @@ function bindEvents() {
     applyTheme(current === 'dark' ? 'light' : 'dark');
   });
 
+  // Accent Switcher
+  accentSelect.addEventListener('change', (e) => {
+    currentAccent = e.target.value;
+    localStorage.setItem('expense_tracker_accent', currentAccent);
+    document.documentElement.setAttribute('data-accent', currentAccent);
+    if (chartInstance) updateChart();
+    showToast(`Accent theme changed to ${currentAccent.toUpperCase()}`, 'info');
+  });
+
   // Currency select
   currencySelect.addEventListener('change', (e) => {
     currentCurrencyCode = e.target.value;
     localStorage.setItem('expense_tracker_currency', currentCurrencyCode);
     updateCurrencySymbolLabels();
     renderApp();
+    renderSmartInsights();
     showToast(`Currency changed to ${currentCurrencyCode} (${CURRENCIES[currentCurrencyCode].symbol})`, 'info');
   });
+
+  // Command Palette
+  globalSearchTrigger.addEventListener('click', openCommandPalette);
+  cmdPaletteInput.addEventListener('input', handleCmdPaletteSearch);
+
+  // Subscriptions modal
+  openSubscriptionsBtn.addEventListener('click', openSubscriptionsModal);
+  closeSubscriptionsModalBtn.addEventListener('click', () => toggleModal(subscriptionsModal, false));
+  newSubForm.addEventListener('submit', handleAddSubscription);
+
+  // Split Bill modal
+  openSplitBillBtn.addEventListener('click', openSplitBillModal);
+  closeSplitBillModalBtn.addEventListener('click', () => toggleModal(splitBillModal, false));
+  [splitTotalAmount, splitPeopleCount, splitTipPercent].forEach(inp => {
+    inp.addEventListener('input', calculateSplitBill);
+  });
+  copySplitSummaryBtn.addEventListener('click', handleCopySplitSummary);
+  addSplitAsExpenseBtn.addEventListener('click', handleAddSplitAsExpense);
 
   // Savings Goals trigger
   openSavingsGoalsBtn.addEventListener('click', openSavingsModal);
   closeSavingsModalBtn.addEventListener('click', () => toggleModal(savingsModal, false));
   newGoalForm.addEventListener('submit', handleAddSavingsGoal);
+
+  // Smart Insights Refresh
+  refreshInsightsBtn.addEventListener('click', renderSmartInsights);
 
   // Print Report
   printReportBtn.addEventListener('click', () => window.print());
@@ -429,6 +554,11 @@ function bindEvents() {
   filterTimeSelect.addEventListener('change', renderApp);
   sortBySelect.addEventListener('change', renderApp);
 
+  // Bulk actions
+  selectAllCheckbox.addEventListener('change', handleSelectAllToggle);
+  bulkDeleteBtn.addEventListener('click', handleBulkDelete);
+  bulkExportBtn.addEventListener('click', handleBulkExport);
+
   // Import / Export / Clear All
   exportCsvBtn.addEventListener('click', exportToCsv);
   exportBtn.addEventListener('click', exportToJson);
@@ -439,13 +569,19 @@ function bindEvents() {
   // Sample data button in empty state
   loadSampleDataBtn.addEventListener('click', handleLoadSampleData);
 
-  // Keyboard Shortcuts (N, B, S, P, T, /, ?)
+  // Global Keyboard Shortcuts (Ctrl+K, N, B, S, P, T, /, ?)
   window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      openCommandPalette();
+      return;
+    }
+
     const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
     const isInputActive = activeTag === 'input' || activeTag === 'select' || activeTag === 'textarea';
 
     if (e.key === 'Escape') {
-      [editModal, budgetModal, savingsModal, shortcutsModal, confirmModal].forEach(m => toggleModal(m, false));
+      [commandPaletteModal, subscriptionsModal, splitBillModal, editModal, budgetModal, savingsModal, shortcutsModal, confirmModal].forEach(m => toggleModal(m, false));
       return;
     }
 
@@ -477,7 +613,7 @@ function bindEvents() {
   });
 
   // Modal backdrop click
-  [editModal, budgetModal, savingsModal, shortcutsModal, confirmModal].forEach(modal => {
+  [commandPaletteModal, subscriptionsModal, splitBillModal, editModal, budgetModal, savingsModal, shortcutsModal, confirmModal].forEach(modal => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) toggleModal(modal, false);
     });
@@ -587,6 +723,7 @@ function handleAddTransaction(e) {
   transactions.unshift(newTx);
   saveTransactions();
   renderApp();
+  renderSmartInsights();
 
   showToast(`Added ${type === 'income' ? 'Income' : 'Expense'}: "${description}"`, 'success');
   handleResetForm();
@@ -609,8 +746,10 @@ function deleteTransaction(id) {
     `Are you sure you want to delete "${tx.description}" (${formatCurrency(tx.amount)})?`,
     () => {
       transactions = transactions.filter(t => t.id !== id);
+      selectedTxIds.delete(id);
       saveTransactions();
       renderApp();
+      renderSmartInsights();
       showToast('Transaction deleted successfully.', 'info');
     }
   );
@@ -667,6 +806,7 @@ function handleSaveEdit(e) {
 
   saveTransactions();
   renderApp();
+  renderSmartInsights();
   toggleModal(editModal, false);
   showToast('Transaction updated successfully.', 'success');
 }
@@ -682,8 +822,10 @@ function handleClearAll() {
     'This will permanently delete all records. This action cannot be reversed.',
     () => {
       transactions = [];
+      selectedTxIds.clear();
       saveTransactions();
       renderApp();
+      renderSmartInsights();
       showToast('All transaction records cleared.', 'info');
     }
   );
@@ -693,11 +835,299 @@ function handleLoadSampleData() {
   transactions = [...SAMPLE_TRANSACTIONS];
   saveTransactions();
   renderApp();
+  renderSmartInsights();
   showToast('Loaded demo transactions successfully!', 'success');
 }
 
 // ==========================================
-// 8. BUDGET & SAVINGS GOALS
+// 8. SMART INSIGHTS ENGINE
+// ==========================================
+
+function renderSmartInsights() {
+  const expenseTx = transactions.filter(t => t.type === 'expense');
+  if (expenseTx.length === 0) {
+    insightText.textContent = 'Welcome! Add your first income or expense to generate AI financial insights.';
+    return;
+  }
+
+  const catTotals = {};
+  let totalExpense = 0;
+  let maxExpense = expenseTx[0];
+
+  expenseTx.forEach(t => {
+    const amt = Number(t.amount);
+    catTotals[t.category] = (catTotals[t.category] || 0) + amt;
+    totalExpense += amt;
+    if (amt > Number(maxExpense.amount)) maxExpense = t;
+  });
+
+  let topCat = '';
+  let topCatAmt = 0;
+  for (const cat in catTotals) {
+    if (catTotals[cat] > topCatAmt) {
+      topCatAmt = catTotals[cat];
+      topCat = cat;
+    }
+  }
+
+  const topPct = Math.round((topCatAmt / totalExpense) * 100);
+  const currentMonthExpenses = transactions
+    .filter(t => t.type === 'expense' && (t.date || '').startsWith(new Date().toISOString().slice(0, 7)))
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const budgetPct = monthlyBudget > 0 ? Math.round((currentMonthExpenses / monthlyBudget) * 100) : 0;
+
+  const insightsPool = [
+    `Top Spending: ${topCat} accounts for ${topPct}% (${formatCurrency(topCatAmt)}) of your total spending.`,
+    budgetPct >= 100
+      ? `Budget Alert: You have exceeded this month's budget by ${formatCurrency(currentMonthExpenses - monthlyBudget)}.`
+      : `Budget Health: ${100 - budgetPct}% remaining in your monthly budget (${formatCurrency(monthlyBudget - currentMonthExpenses)} available).`,
+    `Largest Single Expense: "${maxExpense.description}" (${formatCurrency(maxExpense.amount)}) in ${maxExpense.category}.`,
+    savingsGoals.length > 0
+      ? `Goal Focus: "${savingsGoals[0].name}" is ${Math.round((savingsGoals[0].current / savingsGoals[0].target) * 100)}% funded.`
+      : `Pro Tip: Set a savings goal to start tracking progress toward future milestones.`
+  ];
+
+  const randomInsight = insightsPool[Math.floor(Math.random() * insightsPool.length)];
+  insightText.textContent = randomInsight;
+}
+
+// ==========================================
+// 9. COMMAND PALETTE (CTRL + K)
+// ==========================================
+
+function openCommandPalette() {
+  cmdPaletteInput.value = '';
+  renderCmdPaletteItems('');
+  toggleModal(commandPaletteModal, true);
+  cmdPaletteInput.focus();
+}
+
+function handleCmdPaletteSearch() {
+  const query = cmdPaletteInput.value.trim().toLowerCase();
+  renderCmdPaletteItems(query);
+}
+
+function renderCmdPaletteItems(query) {
+  cmdPaletteResults.innerHTML = '';
+
+  const staticActions = [
+    { title: 'Add New Expense', tag: 'Action', icon: 'fa-arrow-down', run: () => { typeExpenseRadio.checked = true; onTypeChange('expense'); formSection.scrollIntoView({ behavior: 'smooth' }); descriptionInput.focus(); } },
+    { title: 'Add New Income', tag: 'Action', icon: 'fa-arrow-up', run: () => { typeIncomeRadio.checked = true; onTypeChange('income'); formSection.scrollIntoView({ behavior: 'smooth' }); descriptionInput.focus(); } },
+    { title: 'Set Monthly Budget', tag: 'Settings', icon: 'fa-gear', run: openBudgetModal },
+    { title: 'Recurring Bills & Subscriptions', tag: 'Feature', icon: 'fa-arrows-rotate', run: openSubscriptionsModal },
+    { title: 'Split Bill Calculator', tag: 'Feature', icon: 'fa-calculator', run: openSplitBillModal },
+    { title: 'Savings Goals Manager', tag: 'Feature', icon: 'fa-piggy-bank', run: openSavingsModal },
+    { title: 'Print / PDF Financial Statement', tag: 'Export', icon: 'fa-print', run: () => window.print() },
+    { title: 'Export Transactions as CSV', tag: 'Export', icon: 'fa-file-csv', run: exportToCsv },
+    { title: 'Toggle Dark / Light Theme', tag: 'Appearance', icon: 'fa-circle-half-stroke', run: () => themeToggleBtn.click() }
+  ];
+
+  const filteredActions = staticActions.filter(a => a.title.toLowerCase().includes(query) || a.tag.toLowerCase().includes(query));
+
+  filteredActions.forEach(action => {
+    const item = document.createElement('div');
+    item.className = 'cmd-item';
+    item.innerHTML = `
+      <div class="cmd-item-left">
+        <i class="fa-solid ${action.icon}"></i>
+        <span>${escapeHtml(action.title)}</span>
+      </div>
+      <span class="cmd-tag">${action.tag}</span>
+    `;
+    item.addEventListener('click', () => {
+      toggleModal(commandPaletteModal, false);
+      action.run();
+    });
+    cmdPaletteResults.appendChild(item);
+  });
+
+  // Matching transactions
+  if (query) {
+    const matchedTx = transactions.filter(t =>
+      (t.description || '').toLowerCase().includes(query) ||
+      (t.category || '').toLowerCase().includes(query)
+    ).slice(0, 5);
+
+    matchedTx.forEach(tx => {
+      const item = document.createElement('div');
+      item.className = 'cmd-item';
+      item.innerHTML = `
+        <div class="cmd-item-left">
+          <i class="fa-solid fa-receipt"></i>
+          <span>${escapeHtml(tx.description)} (${formatCurrency(tx.amount)})</span>
+        </div>
+        <span class="cmd-tag">${tx.category} • ${formatDisplayDate(tx.date)}</span>
+      `;
+      item.addEventListener('click', () => {
+        toggleModal(commandPaletteModal, false);
+        openEditModal(tx.id);
+      });
+      cmdPaletteResults.appendChild(item);
+    });
+  }
+}
+
+// ==========================================
+// 10. RECURRING SUBSCRIPTIONS MANAGER
+// ==========================================
+
+function openSubscriptionsModal() {
+  renderSubscriptions();
+  toggleModal(subscriptionsModal, true);
+}
+
+function handleAddSubscription(e) {
+  e.preventDefault();
+  const name = subNameInput.value.trim();
+  const amount = parseFloat(subAmountInput.value);
+  const category = subCategorySelect.value;
+  const dueDay = parseInt(subDueDayInput.value, 10);
+
+  if (!name || isNaN(amount) || amount <= 0 || isNaN(dueDay)) {
+    showToast('Please check the subscription details.', 'warning');
+    return;
+  }
+
+  subscriptions.push({
+    id: 'sub_' + Date.now().toString(36),
+    name,
+    amount: Math.round(amount * 100) / 100,
+    category,
+    dueDay
+  });
+
+  saveSubscriptions();
+  renderSubscriptions();
+  newSubForm.reset();
+  showToast(`Subscription "${name}" added!`, 'success');
+}
+
+function renderSubscriptions() {
+  subscriptionsList.innerHTML = '';
+  let monthlyTotal = 0;
+
+  subscriptions.forEach(s => {
+    monthlyTotal += Number(s.amount);
+    const card = document.createElement('div');
+    card.className = 'sub-card';
+    card.innerHTML = `
+      <div class="sub-left">
+        <span class="sub-name">${escapeHtml(s.name)}</span>
+        <span class="sub-meta">${escapeHtml(s.category)} • Renews on ${s.dueDay}th of month</span>
+      </div>
+      <div class="sub-right">
+        <span class="sub-price">${formatCurrency(s.amount)}</span>
+        <button class="btn btn-sm btn-outline pay-sub-btn" title="Add as paid expense today"><i class="fa-solid fa-check"></i> Mark Paid</button>
+        <button class="action-icon-btn delete del-sub-btn" title="Remove"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `;
+
+    // Mark paid button logs transaction directly
+    card.querySelector('.pay-sub-btn').addEventListener('click', () => {
+      const newTx = {
+        id: generateId(),
+        type: 'expense',
+        description: s.name,
+        category: s.category,
+        amount: s.amount,
+        paymentMethod: 'UPI / Online',
+        date: new Date().toISOString().slice(0, 10),
+        notes: '#subscription renewal',
+        createdAt: Date.now()
+      };
+      transactions.unshift(newTx);
+      saveTransactions();
+      renderApp();
+      renderSmartInsights();
+      showToast(`Logged "${s.name}" as paid expense today!`, 'success');
+    });
+
+    card.querySelector('.del-sub-btn').addEventListener('click', () => {
+      subscriptions = subscriptions.filter(sub => sub.id !== s.id);
+      saveSubscriptions();
+      renderSubscriptions();
+      showToast('Subscription removed.', 'info');
+    });
+
+    subscriptionsList.appendChild(card);
+  });
+
+  subMonthlyBurn.textContent = formatCurrency(monthlyTotal);
+  subActiveCount.textContent = subscriptions.length;
+}
+
+// ==========================================
+// 11. SPLIT BILL CALCULATOR
+// ==========================================
+
+function openSplitBillModal() {
+  calculateSplitBill();
+  toggleModal(splitBillModal, true);
+}
+
+function calculateSplitBill() {
+  const total = parseFloat(splitTotalAmount.value) || 0;
+  const people = parseInt(splitPeopleCount.value, 10) || 1;
+  const tipPct = parseFloat(splitTipPercent.value) || 0;
+
+  const totalWithTip = total * (1 + tipPct / 100);
+  const perPerson = people > 0 ? totalWithTip / people : 0;
+
+  splitTotalWithTip.textContent = formatCurrency(totalWithTip);
+  splitPerPersonAmount.textContent = formatCurrency(perPerson);
+}
+
+function handleCopySplitSummary() {
+  const total = parseFloat(splitTotalAmount.value) || 0;
+  const people = parseInt(splitPeopleCount.value, 10) || 1;
+  const tipPct = parseFloat(splitTipPercent.value) || 0;
+  const totalWithTip = total * (1 + tipPct / 100);
+  const perPerson = people > 0 ? totalWithTip / people : 0;
+
+  const text = `Hey! The bill was ${formatCurrency(total)} + ${tipPct}% tip = ${formatCurrency(totalWithTip)}. Split across ${people} people is ${formatCurrency(perPerson)} each. Please UPI/transfer when free! 🙏`;
+
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Copied split bill share text to clipboard!', 'success');
+  }).catch(() => {
+    prompt('Copy bill text:', text);
+  });
+}
+
+function handleAddSplitAsExpense() {
+  const total = parseFloat(splitTotalAmount.value) || 0;
+  const people = parseInt(splitPeopleCount.value, 10) || 1;
+  const tipPct = parseFloat(splitTipPercent.value) || 0;
+  const totalWithTip = total * (1 + tipPct / 100);
+  const perPerson = people > 0 ? totalWithTip / people : 0;
+
+  if (perPerson <= 0) {
+    showToast('Please enter a valid bill amount.', 'warning');
+    return;
+  }
+
+  const newTx = {
+    id: generateId(),
+    type: 'expense',
+    description: `Split Bill (${people} people)`,
+    category: 'Food & Dining',
+    amount: Math.round(perPerson * 100) / 100,
+    paymentMethod: 'UPI / Online',
+    date: new Date().toISOString().slice(0, 10),
+    notes: `Total bill ${formatCurrency(totalWithTip)} split among ${people}`,
+    createdAt: Date.now()
+  };
+
+  transactions.unshift(newTx);
+  saveTransactions();
+  renderApp();
+  renderSmartInsights();
+  toggleModal(splitBillModal, false);
+  showToast(`Added your share (${formatCurrency(perPerson)}) as expense!`, 'success');
+}
+
+// ==========================================
+// 12. BUDGET & SAVINGS GOALS
 // ==========================================
 
 function openBudgetModal() {
@@ -738,10 +1168,10 @@ function renderBudgetStats() {
     budgetProgressBar.classList.remove('warning', 'danger');
     if (pct >= 100) {
       budgetProgressBar.classList.add('danger');
-      budgetStatusText.innerHTML = `<span style="color:var(--expense); font-weight:600;"><i class="fa-solid fa-triangle-exclamation"></i> Budget exceeded by ${formatCurrency(monthlyExpenses - monthlyBudget)}!</span>`;
+      budgetStatusText.innerHTML = `<span style="color:var(--expense); font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> Budget exceeded by ${formatCurrency(monthlyExpenses - monthlyBudget)}!</span>`;
     } else if (pct >= 80) {
       budgetProgressBar.classList.add('warning');
-      budgetStatusText.innerHTML = `<span style="color:var(--warning); font-weight:600;"><i class="fa-solid fa-bell"></i> Warning: ${100 - pct}% remaining this month.</span>`;
+      budgetStatusText.innerHTML = `<span style="color:var(--warning); font-weight:700;"><i class="fa-solid fa-bell"></i> Warning: ${100 - pct}% remaining this month.</span>`;
     } else {
       budgetStatusText.textContent = `${formatCurrency(monthlyBudget - monthlyExpenses)} remaining for this month.`;
     }
@@ -814,6 +1244,7 @@ function renderSavingsGoals() {
           g.current += Math.round(parsed);
           saveSavingsGoals();
           renderSavingsGoals();
+          renderSmartInsights();
           showToast(`Added ${formatCurrency(parsed)} to "${g.name}"!`, 'success');
         }
       }
@@ -833,7 +1264,84 @@ function renderSavingsGoals() {
 }
 
 // ==========================================
-// 9. RENDERING & UI UPDATES
+// 13. BULK ACTIONS
+// ==========================================
+
+function handleSelectAllToggle(e) {
+  const isChecked = e.target.checked;
+  const visibleTx = getFilteredTransactions();
+
+  if (isChecked) {
+    visibleTx.forEach(t => selectedTxIds.add(t.id));
+  } else {
+    selectedTxIds.clear();
+  }
+
+  updateBulkBar();
+  document.querySelectorAll('.tx-checkbox').forEach(cb => {
+    cb.checked = isChecked;
+  });
+}
+
+function handleTxCheckboxChange(id, isChecked) {
+  if (isChecked) selectedTxIds.add(id);
+  else selectedTxIds.delete(id);
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const count = selectedTxIds.size;
+  if (count > 0) {
+    bulkActionBar.style.display = 'flex';
+    selectedCountText.textContent = `${count} item${count > 1 ? 's' : ''} selected`;
+  } else {
+    bulkActionBar.style.display = 'none';
+    selectAllCheckbox.checked = false;
+  }
+}
+
+function handleBulkDelete() {
+  const count = selectedTxIds.size;
+  if (count === 0) return;
+
+  showConfirmDialog(
+    `Delete ${count} Transactions?`,
+    `Are you sure you want to delete the ${count} selected transactions?`,
+    () => {
+      transactions = transactions.filter(t => !selectedTxIds.has(t.id));
+      selectedTxIds.clear();
+      saveTransactions();
+      renderApp();
+      renderSmartInsights();
+      showToast(`Deleted ${count} transactions.`, 'info');
+    }
+  );
+}
+
+function handleBulkExport() {
+  const count = selectedTxIds.size;
+  if (count === 0) return;
+
+  const selectedList = transactions.filter(t => selectedTxIds.has(t.id));
+  const headers = ['ID', 'Type', 'Description', 'Category', 'Payment Method', `Amount (${currentCurrencyCode})`, 'Date', 'Notes'];
+  const rows = selectedList.map(t => [
+    `"${t.id || ''}"`,
+    `"${t.type || ''}"`,
+    `"${(t.description || '').replace(/"/g, '""')}"`,
+    `"${(t.category || '').replace(/"/g, '""')}"`,
+    `"${(t.paymentMethod || 'UPI / Online').replace(/"/g, '""')}"`,
+    t.amount,
+    `"${t.date || ''}"`,
+    `"${(t.notes || '').replace(/"/g, '""')}"`
+  ]);
+
+  const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+  downloadFile(csvContent, `selected_expenses_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+  showToast(`Exported ${count} selected transactions to CSV!`, 'success');
+}
+
+// ==========================================
+// 14. RENDERING & UI UPDATES
 // ==========================================
 
 function renderApp() {
@@ -879,7 +1387,6 @@ function renderSummaryCards() {
     balanceStatusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Spending exceeds income';
   }
 
-  // Financial Health Metrics
   const savingsRate = incomeTotal > 0 ? Math.max(0, Math.round(((incomeTotal - expenseTotal) / incomeTotal) * 100)) : 0;
   savingsRateValEl.textContent = `${savingsRate}%`;
 
@@ -898,7 +1405,6 @@ function renderSummaryCards() {
 function getFilteredTransactions() {
   let result = [...transactions];
 
-  // Search
   const query = searchInput.value.trim().toLowerCase();
   if (query) {
     result = result.filter(t =>
@@ -908,25 +1414,21 @@ function getFilteredTransactions() {
     );
   }
 
-  // Category
   const cat = filterCategorySelect.value;
   if (cat && cat !== 'all') {
     result = result.filter(t => t.category === cat);
   }
 
-  // Type
   const type = filterTypeSelect.value;
   if (type && type !== 'all') {
     result = result.filter(t => t.type === type);
   }
 
-  // Payment Method
   const payment = filterPaymentMethodSelect.value;
   if (payment && payment !== 'all') {
     result = result.filter(t => (t.paymentMethod || 'UPI / Online') === payment);
   }
 
-  // Time Range
   const time = filterTimeSelect.value;
   if (time && time !== 'all') {
     const now = new Date();
@@ -948,7 +1450,6 @@ function getFilteredTransactions() {
     }
   }
 
-  // Sorting
   const sort = sortBySelect.value;
   result.sort((a, b) => {
     if (sort === 'date_desc') {
@@ -977,6 +1478,7 @@ function renderTransactionList() {
     emptyListState.style.display = 'flex';
     txList.style.display = 'none';
     txListGrouped.style.display = 'none';
+    bulkActionBar.style.display = 'none';
     if (transactions.length === 0) {
       emptyStateMessage.textContent = "You haven't added any transactions yet. Start tracking your expenses today!";
       loadSampleDataBtn.style.display = 'inline-flex';
@@ -998,10 +1500,11 @@ function renderTransactionList() {
     txListGrouped.style.display = 'none';
     filtered.forEach(tx => txList.appendChild(createTxElement(tx)));
   }
+
+  updateBulkBar();
 }
 
 function renderGroupedTransactionList(items) {
-  // Group items by date
   const groups = {};
   items.forEach(t => {
     const d = t.date || 'No Date';
@@ -1009,7 +1512,7 @@ function renderGroupedTransactionList(items) {
     groups[d].push(t);
   });
 
-  const dates = Object.keys(groups); // Already sorted if items was sorted by date
+  const dates = Object.keys(groups);
   dates.forEach(dateStr => {
     const txGroup = groups[dateStr];
     let dayIncome = 0;
@@ -1045,11 +1548,14 @@ function renderGroupedTransactionList(items) {
 function createTxElement(tx) {
   const meta = getCategoryMeta(tx.category, tx.type);
   const paymentIcon = PAYMENT_ICONS[tx.paymentMethod] || 'fa-credit-card';
+  const isSelected = selectedTxIds.has(tx.id);
+
   const li = document.createElement('li');
   li.className = 'tx-item';
   li.dataset.id = tx.id;
 
   li.innerHTML = `
+    <input type="checkbox" class="tx-checkbox" ${isSelected ? 'checked' : ''} aria-label="Select transaction" />
     <div class="tx-left">
       <div class="tx-category-icon" style="background: ${meta.color}1a; color: ${meta.color};" title="${tx.category}">
         <i class="fa-solid ${meta.icon}"></i>
@@ -1080,6 +1586,8 @@ function createTxElement(tx) {
     </div>
   `;
 
+  const cb = li.querySelector('.tx-checkbox');
+  cb.addEventListener('change', (e) => handleTxCheckboxChange(tx.id, e.target.checked));
   li.querySelector('.edit').addEventListener('click', () => openEditModal(tx.id));
   li.querySelector('.delete').addEventListener('click', () => deleteTransaction(tx.id));
 
@@ -1101,7 +1609,7 @@ function updateCategoryFilterDropdown() {
 }
 
 // ==========================================
-// 10. CHART.JS 3-WAY ANALYTICS ENGINE
+// 15. CHART.JS 3-WAY ANALYTICS ENGINE
 // ==========================================
 
 function updateChart() {
@@ -1171,7 +1679,7 @@ function renderCategoryDoughnutChart(textColor) {
         data: dataValues,
         backgroundColor: colors,
         borderWidth: 2,
-        borderColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#1e293b' : '#ffffff',
+        borderColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#121826' : '#ffffff',
         hoverOffset: 6
       }]
     },
@@ -1185,7 +1693,7 @@ function renderCategoryDoughnutChart(textColor) {
             boxWidth: 12,
             padding: 10,
             color: textColor,
-            font: { family: 'Inter', size: 11, weight: '500' }
+            font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' }
           }
         },
         tooltip: {
@@ -1249,7 +1757,7 @@ function renderCashflowBarChart(textColor, gridColor) {
       labels,
       datasets: [
         { label: 'Income', data: incomeData, backgroundColor: '#10b981', borderRadius: 6 },
-        { label: 'Expenses', data: expenseData, backgroundColor: '#ef4444', borderRadius: 6 }
+        { label: 'Expenses', data: expenseData, backgroundColor: '#f43f5e', borderRadius: 6 }
       ]
     },
     options: {
@@ -1258,13 +1766,13 @@ function renderCashflowBarChart(textColor, gridColor) {
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: textColor, font: { family: 'Inter', size: 11 } }
+          ticks: { color: textColor, font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } }
         },
         y: {
           grid: { color: gridColor },
           ticks: {
             color: textColor,
-            font: { family: 'Inter', size: 10 },
+            font: { family: 'Plus Jakarta Sans', size: 10 },
             callback: value => CURRENCIES[currentCurrencyCode].symbol + value.toLocaleString()
           }
         }
@@ -1272,7 +1780,7 @@ function renderCashflowBarChart(textColor, gridColor) {
       plugins: {
         legend: {
           position: 'top',
-          labels: { boxWidth: 12, padding: 10, color: textColor, font: { family: 'Inter', size: 11 } }
+          labels: { boxWidth: 12, padding: 10, color: textColor, font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } }
         },
         tooltip: {
           callbacks: {
@@ -1285,7 +1793,6 @@ function renderCashflowBarChart(textColor, gridColor) {
 }
 
 function renderBalanceTrendChart(textColor, gridColor) {
-  // Sort all transactions chronologically to calculate cumulative trajectory
   const chronological = [...transactions].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
   if (chronological.length === 0) {
@@ -1335,13 +1842,13 @@ function renderBalanceTrendChart(textColor, gridColor) {
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: textColor, font: { family: 'Inter', size: 10 }, maxTicksLimit: 7 }
+          ticks: { color: textColor, font: { family: 'Plus Jakarta Sans', size: 10 }, maxTicksLimit: 7 }
         },
         y: {
           grid: { color: gridColor },
           ticks: {
             color: textColor,
-            font: { family: 'Inter', size: 10 },
+            font: { family: 'Plus Jakarta Sans', size: 10 },
             callback: value => CURRENCIES[currentCurrencyCode].symbol + value.toLocaleString()
           }
         }
@@ -1359,7 +1866,7 @@ function renderBalanceTrendChart(textColor, gridColor) {
 }
 
 // ==========================================
-// 11. IMPORT & EXPORT FEATURES
+// 16. IMPORT & EXPORT FEATURES
 // ==========================================
 
 function exportToCsv() {
@@ -1438,6 +1945,7 @@ function handleImportFile(e) {
 
       saveTransactions();
       renderApp();
+      renderSmartInsights();
       showToast(`Successfully imported ${importedCount} transactions!`, 'success');
     } catch (err) {
       showToast(`Failed to import: ${err.message}`, 'error');
@@ -1449,7 +1957,7 @@ function handleImportFile(e) {
 }
 
 // ==========================================
-// 12. MODALS & DIALOGS
+// 17. MODALS & DIALOGS
 // ==========================================
 
 function toggleModal(modal, show) {
@@ -1472,7 +1980,7 @@ function showConfirmDialog(title, message, onConfirm) {
 }
 
 // ==========================================
-// 13. TOAST NOTIFICATIONS
+// 18. TOAST NOTIFICATIONS
 // ==========================================
 
 function showToast(message, type = 'info') {
@@ -1502,7 +2010,7 @@ function showToast(message, type = 'info') {
 }
 
 // ==========================================
-// 14. UTILITY FUNCTIONS
+// 19. UTILITY FUNCTIONS
 // ==========================================
 
 function formatCurrency(num) {
