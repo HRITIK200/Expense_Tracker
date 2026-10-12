@@ -1,9 +1,11 @@
 # 💰 Expense Tracker Web App
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Website-brightgreen?style=for-the-badge&logo=googlechrome)](https://hritik200.github.io/Expense_Tracker/)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FHRITIK200%2FExpense_Tracker)
 [![GitHub repo](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/HRITIK200/Expense_Tracker)
 
-🔗 **Live Demo URL:** [https://hritik200.github.io/Expense_Tracker/](https://hritik200.github.io/Expense_Tracker/)
+🔗 **GitHub Pages Live Demo:** [https://hritik200.github.io/Expense_Tracker/](https://hritik200.github.io/Expense_Tracker/)  
+▲ **Deploy on Vercel:** [Click here to 1-Click Deploy on Vercel](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FHRITIK200%2FExpense_Tracker)
 
 ## 📘 Project Overview
 The **Expense Tracker App** is a responsive, feature-rich web application that helps users track their daily income and expenses efficiently.  
