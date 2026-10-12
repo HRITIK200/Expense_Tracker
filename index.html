@@ -7,10 +7,10 @@
   <meta name="description" content="Next-generation Expense Tracker & Financial Manager with multi-currency, interactive analytics, budget tracking, savings goals, and PDF reports." />
   <title>Smart Expense Tracker & Financial Manager</title>
 
-  <!-- Google Fonts: Poppins & Inter -->
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -19,6 +19,10 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- Ambient background glow elements -->
+  <div class="bg-glow glow-1" aria-hidden="true"></div>
+  <div class="bg-glow glow-2" aria-hidden="true"></div>
+
   <div class="app-container">
     <!-- ===== HEADER NAVBAR ===== -->
     <header class="app-header">
@@ -28,7 +32,10 @@
         </div>
         <div class="brand-text">
           <h1>Expense Tracker</h1>
-          <span class="live-date" id="currentDateDisplay"><i class="fa-regular fa-calendar"></i> Today</span>
+          <div class="live-status-wrap">
+            <span class="live-pulse"></span>
+            <span class="live-date" id="currentDateDisplay"><i class="fa-regular fa-calendar"></i> Today</span>
+          </div>
         </div>
       </div>
 
@@ -66,7 +73,7 @@
         </button>
 
         <!-- Theme Toggle -->
-        <button id="themeToggleBtn" class="icon-btn" title="Toggle Light / Dark Mode (Press 'T')" aria-label="Toggle theme">
+        <button id="themeToggleBtn" class="icon-btn theme-btn" title="Toggle Light / Dark Mode (Press 'T')" aria-label="Toggle theme">
           <i class="fa-solid fa-moon" id="themeIcon"></i>
         </button>
       </div>
@@ -78,7 +85,7 @@
       <div class="stat-card balance-card">
         <div class="stat-header">
           <span class="stat-label">Net Balance</span>
-          <span class="stat-icon"><i class="fa-solid fa-scale-balanced"></i></span>
+          <span class="kpi-pill balance-pill"><i class="fa-solid fa-scale-balanced"></i> Cash Flow</span>
         </div>
         <div class="stat-value" id="netAmount">₹0.00</div>
         <div class="stat-sub" id="balanceStatus"><i class="fa-solid fa-circle-check"></i> In good standing</div>
@@ -88,7 +95,7 @@
       <div class="stat-card income-card">
         <div class="stat-header">
           <span class="stat-label">Total Income</span>
-          <span class="stat-icon"><i class="fa-solid fa-arrow-trend-up"></i></span>
+          <span class="kpi-pill income-pill"><i class="fa-solid fa-arrow-trend-up"></i> Inflow</span>
         </div>
         <div class="stat-value" id="totalIncome">₹0.00</div>
         <div class="stat-sub"><span id="incomeCount">0</span> income transactions</div>
@@ -98,7 +105,7 @@
       <div class="stat-card expense-card">
         <div class="stat-header">
           <span class="stat-label">Total Expenses</span>
-          <span class="stat-icon"><i class="fa-solid fa-arrow-trend-down"></i></span>
+          <span class="kpi-pill expense-pill"><i class="fa-solid fa-arrow-trend-down"></i> Outflow</span>
         </div>
         <div class="stat-value" id="totalExpense">₹0.00</div>
         <div class="stat-sub"><span id="expenseCount">0</span> expense items</div>
@@ -128,7 +135,7 @@
       <div class="stat-card health-card">
         <div class="stat-header">
           <span class="stat-label">Financial Health</span>
-          <span class="stat-icon health-icon"><i class="fa-solid fa-heart-pulse"></i></span>
+          <span class="kpi-pill health-pill"><i class="fa-solid fa-heart-pulse"></i> Pace</span>
         </div>
         <div class="health-metrics">
           <div class="health-metric-item">
@@ -149,8 +156,8 @@
       <!-- LEFT COLUMN: TRANSACTION FORM & QUICK ADD -->
       <section class="card form-card" id="formSection">
         <div class="card-title">
-          <h2><i class="fa-solid fa-plus-circle"></i> Add Transaction</h2>
-          <span class="card-subtitle">Record income or expense with payment method</span>
+          <h2><i class="fa-solid fa-circle-plus"></i> Add Transaction</h2>
+          <span class="card-subtitle">Record income or expense with category and payment method</span>
         </div>
 
         <form id="txForm" novalidate>
@@ -178,7 +185,7 @@
 
           <!-- Quick tags / chips -->
           <div class="quick-tags" id="quickTags">
-            <span class="tags-label">Quick suggestions:</span>
+            <span class="tags-label">Quick Suggestions:</span>
             <div class="tags-list" id="quickTagsList">
               <!-- Populated dynamically -->
             </div>
@@ -277,7 +284,7 @@
         <div class="chart-wrapper">
           <canvas id="expenseChart" aria-label="Financial Chart" role="img"></canvas>
           <div id="chartEmptyState" class="chart-empty-state" style="display: none;">
-            <i class="fa-solid fa-chart-line"></i>
+            <div class="chart-empty-icon"><i class="fa-solid fa-chart-pie"></i></div>
             <p>No transaction data to display yet.</p>
             <small>Add income or expenses to view analytics.</small>
           </div>
@@ -285,11 +292,13 @@
 
         <div class="chart-stats-footer">
           <div class="chart-footer-item">
-            <span class="top-cat-label">Top Expense Category:</span>
+            <span class="dot-indicator cat-dot"></span>
+            <span class="top-cat-label">Top Expense:</span>
             <span class="top-cat-value" id="topCategoryValue">—</span>
           </div>
           <div class="chart-footer-item">
-            <span class="top-cat-label">Monthly Savings Pace:</span>
+            <span class="dot-indicator pace-dot"></span>
+            <span class="top-cat-label">Savings Pace:</span>
             <span class="top-cat-value" id="chartSavingsPace">—</span>
           </div>
         </div>
@@ -419,7 +428,7 @@
     <footer class="app-footer">
       <div class="footer-content">
         <p>Built with <i class="fa-solid fa-heart footer-heart"></i> for smart money management.</p>
-        <span class="footer-meta">Offline-ready • 100% Private (Local Storage) • Multi-Currency</span>
+        <span class="footer-meta">Offline-ready • 100% Private (Local Storage) • Multi-Currency • Keyboard Driven</span>
       </div>
     </footer>
   </div>
@@ -507,7 +516,7 @@
       <div class="savings-modal-body">
         <!-- New Goal Form -->
         <form id="newGoalForm" class="new-goal-form">
-          <h4><i class="fa-solid fa-plus"></i> Create New Savings Goal</h4>
+          <h4><i class="fa-solid fa-plus-circle"></i> Create New Savings Target</h4>
           <div class="form-row split-row">
             <div class="form-group">
               <label for="goalNameInput">Goal Name</label>
