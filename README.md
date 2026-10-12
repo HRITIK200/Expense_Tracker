@@ -1,10 +1,15 @@
 # 💰 Expense Tracker Web App
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Website-brightgreen?style=for-the-badge&logo=googlechrome)](https://hritik200.github.io/Expense_Tracker/)
+[![GitHub repo](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/HRITIK200/Expense_Tracker)
+
+🔗 **Live Demo URL:** [https://hritik200.github.io/Expense_Tracker/](https://hritik200.github.io/Expense_Tracker/)
+
 ## 📘 Project Overview
-The **Expense Tracker App** is a responsive and dynamic web-based application that helps users track their daily income and expenses efficiently.  
-Built using **HTML, CSS, and JavaScript**, it allows users to add, edit, delete, filter, and search transactions.  
-Data is stored in the browser’s **localStorage**, ensuring persistence even after page refresh.  
-The app also includes a **visual pie chart** using **Chart.js** to show spending distribution by category.
+The **Expense Tracker App** is a responsive, feature-rich web application that helps users track their daily income and expenses efficiently.  
+Built using **HTML5, CSS3, and modern JavaScript**, it allows users to add, edit (via custom modal), delete, filter, and sort transactions.  
+Data is stored securely in the browser’s **localStorage**, ensuring privacy and persistence.  
+The app features dynamic interactive charts via **Chart.js** (Category Breakdown & Cashflow Comparison), monthly budget tracking, CSV/JSON export, and seamless Light/Dark mode.
 
 ---
 
