@@ -32,14 +32,17 @@ The app also includes a **visual pie chart** using **Chart.js** to show spending
 ---
 
 ## 🧠 Features
-✅ Add, Edit, and Delete Transactions  
-✅ Search & Filter Transactions by Category or Description  
-✅ Auto-calculated **Total Income**, **Total Expense**, and **Net Balance**  
-✅ Dynamic **Pie Chart** of Expense Distribution  
-✅ Data stored in **Local Storage** (persists after refresh)  
-✅ **Clear All** option to reset data  
-✅ Fully **Responsive Design** for all devices  
-✅ Interactive animations and clean UI  
+✅ **CRUD Operations**: Add, Edit (via sleek modal dialog), and Delete Transactions  
+✅ **Dark & Light Mode**: Seamless theme switching with user preference saved in Local Storage  
+✅ **Monthly Budget Planner**: Set a monthly budget goal with an automated visual progress bar and threshold alerts  
+✅ **Interactive Analytics (Chart.js)**: Toggle between **Expense Category Doughnut** and **Cashflow Bar Chart**  
+✅ **Multi-Criteria Filtering & Sorting**: Filter by Category, Type (Income/Expense), Time Range (Today, Week, Month, Year), and sort by Date or Amount  
+✅ **Quick Suggestion Chips**: Fast 1-click description and category entry  
+✅ **Export & Import**: Export directly to **CSV** (for Excel/Google Sheets) and **JSON**, with JSON restore support  
+✅ **Toast Notification System**: Modern, non-intrusive feedback toasts replacing browser alerts  
+✅ **Demo Data Loader**: 1-click sample data generator for instant testing  
+✅ **100% Privacy & Offline Ready**: All data remains secure in browser `localStorage`  
+✅ **Universal Device Compatibility**: Optimized for mobile phones (touch targets ≥44px), tablets, laptops, and ultra-wide screens  
 
 ---
 ## 🖼️ Screenshots

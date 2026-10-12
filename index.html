@@ -1,134 +1,415 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Expense Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="description" content="A modern, responsive Expense Tracker web application with real-time analytics, budgeting, CSV/JSON export, and dark mode." />
+  <title>Smart Expense Tracker & Budget Manager</title>
 
-  <!-- Google Font + FontAwesome -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Poppins & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="style.css">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1><i class="fa-solid fa-wallet"></i> Expense Tracker</h1>
-      <p class="subtitle">Track income & expenses, analyze categories, and stay on top of your finances.</p>
+  <div class="app-container">
+    <!-- ===== HEADER NAVBAR ===== -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-wallet"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Expense Tracker</h1>
+          <span class="live-date" id="currentDateDisplay"><i class="fa-regular fa-calendar"></i> Today</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Theme Toggle -->
+        <button id="themeToggleBtn" class="icon-btn" title="Toggle Light / Dark Mode" aria-label="Toggle theme">
+          <i class="fa-solid fa-moon" id="themeIcon"></i>
+        </button>
+      </div>
     </header>
 
-    <main>
-      <!-- Form -->
+    <!-- ===== TOP SUMMARY & BUDGET STATS ===== -->
+    <section class="summary-section">
+      <!-- Balance Card -->
+      <div class="stat-card balance-card">
+        <div class="stat-header">
+          <span class="stat-label">Net Balance</span>
+          <span class="stat-icon"><i class="fa-solid fa-scale-balanced"></i></span>
+        </div>
+        <div class="stat-value" id="netAmount">₹0.00</div>
+        <div class="stat-sub" id="balanceStatus"><i class="fa-solid fa-circle-check"></i> In good standing</div>
+      </div>
+
+      <!-- Income Card -->
+      <div class="stat-card income-card">
+        <div class="stat-header">
+          <span class="stat-label">Total Income</span>
+          <span class="stat-icon"><i class="fa-solid fa-arrow-trend-up"></i></span>
+        </div>
+        <div class="stat-value" id="totalIncome">₹0.00</div>
+        <div class="stat-sub"><span id="incomeCount">0</span> income items</div>
+      </div>
+
+      <!-- Expense Card -->
+      <div class="stat-card expense-card">
+        <div class="stat-header">
+          <span class="stat-label">Total Expenses</span>
+          <span class="stat-icon"><i class="fa-solid fa-arrow-trend-down"></i></span>
+        </div>
+        <div class="stat-value" id="totalExpense">₹0.00</div>
+        <div class="stat-sub"><span id="expenseCount">0</span> expense items</div>
+      </div>
+
+      <!-- Monthly Budget Tracker Card -->
+      <div class="stat-card budget-card">
+        <div class="stat-header">
+          <span class="stat-label">Monthly Budget</span>
+          <button id="editBudgetBtn" class="badge-action-btn" title="Set monthly budget">
+            <i class="fa-solid fa-gear"></i> Set Limit
+          </button>
+        </div>
+        <div class="budget-info">
+          <div class="budget-amounts">
+            <span id="budgetSpent">₹0.00</span> / <span id="budgetTotal">₹0.00</span>
+          </div>
+          <span class="budget-pct" id="budgetPercentage">0%</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="budgetProgressBar" style="width: 0%;"></div>
+        </div>
+        <div class="stat-sub" id="budgetStatusText">Set a monthly limit to monitor spending</div>
+      </div>
+    </section>
+
+    <!-- ===== MAIN CONTENT GRID ===== -->
+    <main class="dashboard-grid">
+      <!-- LEFT COLUMN: TRANSACTION FORM & QUICK ADD -->
       <section class="card form-card">
-        <form id="txForm">
-          <div class="row">
-            <label>Type</label>
-            <select id="type">
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
-            </select>
+        <div class="card-title">
+          <h2><i class="fa-solid fa-plus-circle"></i> Add Transaction</h2>
+          <span class="card-subtitle">Record a new income or expense</span>
+        </div>
+
+        <form id="txForm" novalidate>
+          <!-- Segmented Type Selector -->
+          <div class="type-segmented-control">
+            <input type="radio" id="typeExpense" name="txType" value="expense" checked />
+            <label for="typeExpense" class="segment-label expense">
+              <i class="fa-solid fa-arrow-down"></i> Expense
+            </label>
+
+            <input type="radio" id="typeIncome" name="txType" value="income" />
+            <label for="typeIncome" class="segment-label income">
+              <i class="fa-solid fa-arrow-up"></i> Income
+            </label>
           </div>
 
-          <div class="row">
-            <label>Description</label>
-            <input id="description" type="text" placeholder="Eg. Grocery, Salary, Rent" />
-          </div>
-
-          <div class="row">
-            <label>Category</label>
-            <select id="category">
-              <option value="Food">Food</option>
-              <option value="Transport">Transport</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Bills">Bills</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Salary">Salary</option>
-              <option value="Others">Others</option>
-            </select>
-          </div>
-
-          <div class="split">
-            <div class="row">
-              <label>Amount (₹)</label>
-              <input id="amount" type="number" step="0.01" placeholder="e.g. 499.00" />
-            </div>
-            <div class="row">
-              <label>Date</label>
-              <input id="date" type="date" />
+          <!-- Description Field -->
+          <div class="form-group">
+            <label for="description">Description <span class="req">*</span></label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-tag input-icon"></i>
+              <input id="description" type="text" placeholder="e.g. Grocery, Salary, Electricity" required autocomplete="off" />
             </div>
           </div>
 
-          <div class="actions">
-            <button id="addBtn" type="submit" class="btn primary">Add Transaction</button>
-            <button id="clearForm" type="button" class="btn">Clear</button>
+          <!-- Quick tags / chips -->
+          <div class="quick-tags" id="quickTags">
+            <span class="tags-label">Quick suggestions:</span>
+            <div class="tags-list" id="quickTagsList">
+              <!-- Populated by JS based on type -->
+            </div>
+          </div>
+
+          <!-- Category & Amount Split -->
+          <div class="form-row split-row">
+            <div class="form-group">
+              <label for="category">Category <span class="req">*</span></label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-shapes input-icon"></i>
+                <select id="category" required>
+                  <!-- Populated dynamically based on type -->
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="amount">Amount (₹) <span class="req">*</span></label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-indian-rupee-sign input-icon"></i>
+                <input id="amount" type="number" step="0.01" min="0.01" placeholder="0.00" inputmode="decimal" required />
+              </div>
+            </div>
+          </div>
+
+          <!-- Date Field -->
+          <div class="form-group">
+            <label for="date">Transaction Date <span class="req">*</span></label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-calendar-days input-icon"></i>
+              <input id="date" type="date" required />
+            </div>
+          </div>
+
+          <!-- Form Action Buttons -->
+          <div class="form-actions">
+            <button id="addBtn" type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-check"></i> Add Entry
+            </button>
+            <button id="clearForm" type="button" class="btn btn-secondary">
+              <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+            </button>
           </div>
         </form>
       </section>
 
-      <!-- Summary + Controls -->
-      <section class="card summary-card">
-        <div class="summary-grid">
-          <div class="summary-item income">
-            <h3>Total Income</h3>
-            <p id="totalIncome">₹0.00</p>
+      <!-- RIGHT COLUMN: VISUAL CHARTS & ANALYTICS -->
+      <section class="card chart-card">
+        <div class="card-title-row">
+          <div>
+            <h2><i class="fa-solid fa-chart-pie"></i> Financial Insights</h2>
+            <span class="card-subtitle">Visual overview of your cash flow</span>
           </div>
-          <div class="summary-item expenses">
-            <h3>Total Expense</h3>
-            <p id="totalExpense">₹0.00</p>
-          </div>
-          <div class="summary-item net">
-            <h3>Net</h3>
-            <p id="netAmount">₹0.00</p>
-          </div>
-        </div>
-
-        <div class="controls">
-          <input id="search" type="text" placeholder="Search description..." />
-          <select id="filterCategory">
-            <option value="all">All Categories</option>
-          </select>
-          <select id="filterType">
-            <option value="all">All Types</option>
-            <option value="income">Income</option>
-            <option value="expense">Expense</option>
-          </select>
-
-          <div class="small-actions">
-            <button id="exportBtn" class="btn">Export JSON</button>
-            <button id="importBtn" class="btn">Import JSON</button>
-            <input id="fileInput" type="file" accept=".json" style="display:none" />
+          <!-- Chart Mode Switcher -->
+          <div class="chart-toggles">
+            <button type="button" class="chart-tab active" data-chart="doughnut">
+              <i class="fa-solid fa-chart-pie"></i> Category
+            </button>
+            <button type="button" class="chart-tab" data-chart="bar">
+              <i class="fa-solid fa-chart-simple"></i> Cashflow
+            </button>
           </div>
         </div>
 
-        <!-- Chart -->
-        <div class="chart-wrap">
-          <canvas id="expenseChart" width="400" height="200"></canvas>
+        <div class="chart-wrapper">
+          <canvas id="expenseChart" aria-label="Financial Chart" role="img"></canvas>
+          <div id="chartEmptyState" class="chart-empty-state" style="display: none;">
+            <i class="fa-solid fa-chart-line"></i>
+            <p>No transaction data to display yet.</p>
+            <small>Add income or expenses to view analytics.</small>
+          </div>
+        </div>
+
+        <div class="chart-stats-footer" id="chartTopCategory">
+          <span class="top-cat-label">Top Expense Category:</span>
+          <span class="top-cat-value" id="topCategoryValue">—</span>
         </div>
       </section>
-
-      <!-- Transactions list -->
-      <section class="card list-card">
-        <h2>Transactions</h2>
-        <ul id="txList" class="tx-list"></ul>
-
-        <div class="list-actions">
-          <button id="clearAll" class="btn danger">Clear All Transactions</button>
-        </div>
-      </section>
-      
     </main>
 
-    <footer>
-      <small>Built with ❤️ by Hritik Pal — Expense Tracker</small>
+    <!-- ===== TRANSACTIONS HISTORY & MANAGEMENT ===== -->
+    <section class="card history-card">
+      <div class="history-header">
+        <div class="history-title">
+          <h2><i class="fa-solid fa-clock-rotate-left"></i> Transaction History</h2>
+          <span class="badge count-badge" id="txCountBadge">0 Total</span>
+        </div>
+
+        <!-- Export, Import & Clear All Action Bar -->
+        <div class="action-buttons-group">
+          <button id="exportCsvBtn" class="btn btn-sm btn-outline" title="Export as CSV spreadsheet">
+            <i class="fa-solid fa-file-csv"></i> CSV
+          </button>
+          <button id="exportBtn" class="btn btn-sm btn-outline" title="Export raw JSON backup">
+            <i class="fa-solid fa-download"></i> JSON
+          </button>
+          <button id="importBtn" class="btn btn-sm btn-outline" title="Import JSON file">
+            <i class="fa-solid fa-upload"></i> Import
+          </button>
+          <input id="fileInput" type="file" accept=".json" style="display:none" />
+          <button id="clearAll" class="btn btn-sm btn-danger" title="Clear all transactions">
+            <i class="fa-solid fa-trash-can"></i> Clear All
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters & Search Toolbar -->
+      <div class="filters-toolbar">
+        <!-- Search bar -->
+        <div class="filter-search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="search" type="text" placeholder="Search by description or category..." autocomplete="off" />
+          <button id="clearSearchBtn" class="clear-search-btn" title="Clear search" style="display:none;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Filter Dropdowns Grid -->
+        <div class="filter-controls-group">
+          <!-- Category Filter -->
+          <div class="filter-select-wrap">
+            <select id="filterCategory" aria-label="Filter by category">
+              <option value="all">All Categories</option>
+            </select>
+          </div>
+
+          <!-- Type Filter -->
+          <div class="filter-select-wrap">
+            <select id="filterType" aria-label="Filter by type">
+              <option value="all">All Types</option>
+              <option value="income">Income Only</option>
+              <option value="expense">Expense Only</option>
+            </select>
+          </div>
+
+          <!-- Time Range Filter -->
+          <div class="filter-select-wrap">
+            <select id="filterTime" aria-label="Filter by date range">
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="this_week">This Week</option>
+              <option value="this_month">This Month</option>
+              <option value="this_year">This Year</option>
+            </select>
+          </div>
+
+          <!-- Sort Filter -->
+          <div class="filter-select-wrap">
+            <select id="sortBy" aria-label="Sort transactions">
+              <option value="date_desc">Date: Newest First</option>
+              <option value="date_asc">Date: Oldest First</option>
+              <option value="amount_desc">Amount: Highest First</option>
+              <option value="amount_asc">Amount: Lowest First</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction Items List -->
+      <div class="tx-list-container">
+        <ul id="txList" class="tx-list" role="list"></ul>
+
+        <!-- Empty State Message -->
+        <div id="emptyListState" class="empty-state" style="display: none;">
+          <div class="empty-state-icon">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <h3>No Transactions Found</h3>
+          <p id="emptyStateMessage">You haven't added any transactions matching this criteria.</p>
+          <button id="loadSampleDataBtn" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Load Sample Demo Data
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p>Built with <i class="fa-solid fa-heart footer-heart"></i> for smart money management.</p>
+        <span class="footer-meta">Offline-ready • 100% Private (Local Storage)</span>
+      </div>
     </footer>
   </div>
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- ===== EDIT TRANSACTION MODAL ===== -->
+  <div class="modal-overlay" id="editModal" aria-hidden="true" role="dialog" aria-labelledby="editModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="editModalTitle"><i class="fa-solid fa-pen-to-square"></i> Edit Transaction</h3>
+        <button class="modal-close-btn" id="closeEditModalBtn" aria-label="Close modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form id="editForm" class="modal-form">
+        <input type="hidden" id="editId" />
+        
+        <div class="type-segmented-control small">
+          <input type="radio" id="editTypeExpense" name="editTxType" value="expense" />
+          <label for="editTypeExpense" class="segment-label expense">Expense</label>
 
-  <!-- Script -->
+          <input type="radio" id="editTypeIncome" name="editTxType" value="income" />
+          <label for="editTypeIncome" class="segment-label income">Income</label>
+        </div>
+
+        <div class="form-group">
+          <label for="editDescription">Description</label>
+          <input type="text" id="editDescription" required />
+        </div>
+
+        <div class="form-row split-row">
+          <div class="form-group">
+            <label for="editCategory">Category</label>
+            <select id="editCategory" required></select>
+          </div>
+          <div class="form-group">
+            <label for="editAmount">Amount (₹)</label>
+            <input type="number" id="editAmount" step="0.01" min="0.01" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="editDate">Date</label>
+          <input type="date" id="editDate" required />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== SET MONTHLY BUDGET MODAL ===== -->
+  <div class="modal-overlay" id="budgetModal" aria-hidden="true" role="dialog" aria-labelledby="budgetModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="budgetModalTitle"><i class="fa-solid fa-bullseye"></i> Set Monthly Expense Budget</h3>
+        <button class="modal-close-btn" id="closeBudgetModalBtn" aria-label="Close modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form id="budgetForm" class="modal-form">
+        <p class="modal-help-text">Set your maximum monthly spending target. The progress bar will visually alert you as you approach or exceed it.</p>
+        <div class="form-group">
+          <label for="monthlyBudgetInput">Target Amount (₹)</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-indian-rupee-sign input-icon"></i>
+            <input type="number" id="monthlyBudgetInput" step="100" min="0" placeholder="e.g. 25000" required />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelBudgetBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Budget</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== CONFIRMATION MODAL ===== -->
+  <div class="modal-overlay" id="confirmModal" aria-hidden="true" role="dialog" aria-labelledby="confirmModalTitle">
+    <div class="modal-card confirm-modal-card">
+      <div class="confirm-icon-wrap" id="confirmIconWrap">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h3 id="confirmModalTitle">Are you sure?</h3>
+      <p id="confirmModalMessage">This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="confirmCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmActionBtn">Yes, Proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST CONTAINER ===== -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Application Logic -->
   <script src="script.js"></script>
 </body>
 </html>
