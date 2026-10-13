@@ -5,13 +5,14 @@
 [![GitHub repo](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/HRITIK200/Expense_Tracker)
 
 🔗 **GitHub Pages Live Demo:** [https://hritik200.github.io/Expense_Tracker/](https://hritik200.github.io/Expense_Tracker/)  
-▲ **Deploy on Vercel:** [Click here to 1-Click Deploy on Vercel](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FHRITIK200%2FExpense_Tracker)
+▲ **Vercel Live App:** [https://expense-tracker-tau-bice-71.vercel.app/](https://expense-tracker-tau-bice-71.vercel.app/)  
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FHRITIK200%2FExpense_Tracker)
 
 ## 📘 Project Overview
-The **Expense Tracker App** is a responsive, feature-rich web application that helps users track their daily income and expenses efficiently.  
-Built using **HTML5, CSS3, and modern JavaScript**, it allows users to add, edit (via custom modal), delete, filter, and sort transactions.  
-Data is stored securely in the browser’s **localStorage**, ensuring privacy and persistence.  
-The app features dynamic interactive charts via **Chart.js** (Category Breakdown & Cashflow Comparison), monthly budget tracking, CSV/JSON export, and seamless Light/Dark mode.
+The **Expense Tracker App** is a luxury, responsive, enterprise-grade financial management web application.  
+Built using modern **HTML5, CSS3, and modern ES6+ JavaScript**, it provides full offline-ready budgeting, interactive 3D virtual cards, financial wellness scoring, recurring subscriptions tracking, and multi-currency exchange.  
+Data is stored securely in the browser’s **localStorage**, ensuring complete privacy and immediate persistence without backend dependencies.  
+The app features dynamic interactive charts via **Chart.js** (Category Breakdown, Cashflow Comparison & Trend Trajectory), monthly budget tracking, CSV/JSON export, live currency conversions, and seamless Light/Dark mode.
 
 ---
 
@@ -39,6 +40,12 @@ The app features dynamic interactive charts via **Chart.js** (Category Breakdown
 ---
 
 ## 🧠 Features
+✅ **Interactive 3D Virtual Platinum Card**: Dynamic card balance sync with 3D mouse tilt and 4 themes (Obsidian, Royal Indigo, Cyber Emerald, Sunset Rose)  
+✅ **Financial Wellness Score Gauge (0-100)**: Real-time algorithm assessing savings ratio, budget discipline, and safe daily burn rate  
+✅ **Quick Action Dock**: Rapid launcher for Add Expense, Add Income, Manage Bills, Split Expenses, Currency Exchange, and Savings Goals  
+✅ **Live Currency Exchange Converter**: Instant multi-currency conversions with exchange rate table and 1-click swap  
+✅ **3 Real-World Demo Scenarios**: 1-click loading for Tech Professional, Freelancer, and Student personas  
+✅ **Category Spending Distribution Meters**: Top expense categories visualized with progress meter bars  
 ✅ **CRUD Operations**: Add, Edit (via sleek modal dialog with payment mode & notes), and Delete Transactions  
 ✅ **Smart Financial Insights Ticker**: Automated insights highlighting top expense category, monthly budget health, and largest purchases  
 ✅ **Global Command Palette (`Ctrl + K` / `⌘K`)**: Quick-jump search and instant actions launcher across all features  

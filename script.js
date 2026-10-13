@@ -308,6 +308,44 @@ const confirmModalMessage = document.getElementById('confirmModalMessage');
 const confirmCancelBtn = document.getElementById('confirmCancelBtn');
 const confirmActionBtn = document.getElementById('confirmActionBtn');
 
+// Currency Converter Modal
+const converterModal = document.getElementById('converterModal');
+const openConverterBtn = document.getElementById('openConverterBtn');
+const closeConverterModalBtn = document.getElementById('closeConverterModalBtn');
+const convertFromAmount = document.getElementById('convertFromAmount');
+const convertFromCurrency = document.getElementById('convertFromCurrency');
+const convertToCurrency = document.getElementById('convertToCurrency');
+const swapCurrencyBtn = document.getElementById('swapCurrencyBtn');
+const converterResultVal = document.getElementById('converterResultVal');
+const converterRateLabel = document.getElementById('converterRateLabel');
+
+// Virtual Card & Hero Fintech Hub
+const virtualCard = document.getElementById('virtualCard');
+const virtualCardWrapper = document.getElementById('virtualCardWrapper');
+const cardBalanceVal = document.getElementById('cardBalanceVal');
+const cardThemeDots = document.querySelectorAll('.card-theme-dot');
+
+// Financial Wellness Gauge & Dock
+const healthScoreNumber = document.getElementById('healthScoreNumber');
+const healthScoreFill = document.getElementById('healthScoreFill');
+const gaugeBadge = document.getElementById('gaugeBadge');
+const gaugeSavingsRatio = document.getElementById('gaugeSavingsRatio');
+const gaugeBudgetDiscipline = document.getElementById('gaugeBudgetDiscipline');
+const gaugeSafeDailyBurn = document.getElementById('gaugeSafeDailyBurn');
+
+const dockAddExpenseBtn = document.getElementById('dockAddExpenseBtn');
+const dockAddIncomeBtn = document.getElementById('dockAddIncomeBtn');
+const dockBillsBtn = document.getElementById('dockBillsBtn');
+const dockSplitBtn = document.getElementById('dockSplitBtn');
+const dockExchangeBtn = document.getElementById('dockExchangeBtn');
+const dockGoalsBtn = document.getElementById('dockGoalsBtn');
+
+// Category Spending Distribution Meters
+const categoryMetersList = document.getElementById('categoryMetersList');
+
+// Demo Personas
+const personaBtns = document.querySelectorAll('.persona-btn');
+
 // Toast Container
 const toastContainer = document.getElementById('toastContainer');
 
@@ -569,6 +607,47 @@ function bindEvents() {
   // Sample data button in empty state
   loadSampleDataBtn.addEventListener('click', handleLoadSampleData);
 
+  // Currency Converter modal
+  if (openConverterBtn) openConverterBtn.addEventListener('click', openConverterModal);
+  if (closeConverterModalBtn) closeConverterModalBtn.addEventListener('click', () => toggleModal(converterModal, false));
+  if (convertFromAmount) convertFromAmount.addEventListener('input', calculateCurrencyConversion);
+  if (convertFromCurrency) convertFromCurrency.addEventListener('change', calculateCurrencyConversion);
+  if (convertToCurrency) convertToCurrency.addEventListener('change', calculateCurrencyConversion);
+  if (swapCurrencyBtn) swapCurrencyBtn.addEventListener('click', handleSwapCurrencies);
+
+  // Quick Action Dock buttons
+  if (dockAddExpenseBtn) {
+    dockAddExpenseBtn.addEventListener('click', () => {
+      typeExpenseRadio.checked = true;
+      onTypeChange('expense');
+      formSection.scrollIntoView({ behavior: 'smooth' });
+      descriptionInput.focus();
+    });
+  }
+  if (dockAddIncomeBtn) {
+    dockAddIncomeBtn.addEventListener('click', () => {
+      typeIncomeRadio.checked = true;
+      onTypeChange('income');
+      formSection.scrollIntoView({ behavior: 'smooth' });
+      descriptionInput.focus();
+    });
+  }
+  if (dockBillsBtn) dockBillsBtn.addEventListener('click', openSubscriptionsModal);
+  if (dockSplitBtn) dockSplitBtn.addEventListener('click', openSplitBillModal);
+  if (dockExchangeBtn) dockExchangeBtn.addEventListener('click', openConverterModal);
+  if (dockGoalsBtn) dockGoalsBtn.addEventListener('click', openSavingsModal);
+
+  // Virtual Card Theme switcher & 3D tilt
+  initVirtualCard();
+
+  // Demo Persona buttons
+  personaBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const persona = btn.getAttribute('data-persona');
+      loadPersonaData(persona);
+    });
+  });
+
   // Global Keyboard Shortcuts (Ctrl+K, N, B, S, P, T, /, ?)
   window.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -581,7 +660,9 @@ function bindEvents() {
     const isInputActive = activeTag === 'input' || activeTag === 'select' || activeTag === 'textarea';
 
     if (e.key === 'Escape') {
-      [commandPaletteModal, subscriptionsModal, splitBillModal, editModal, budgetModal, savingsModal, shortcutsModal, confirmModal].forEach(m => toggleModal(m, false));
+      [commandPaletteModal, subscriptionsModal, splitBillModal, editModal, budgetModal, savingsModal, shortcutsModal, confirmModal, converterModal].forEach(m => {
+        if (m) toggleModal(m, false);
+      });
       return;
     }
 
@@ -613,10 +694,12 @@ function bindEvents() {
   });
 
   // Modal backdrop click
-  [commandPaletteModal, subscriptionsModal, splitBillModal, editModal, budgetModal, savingsModal, shortcutsModal, confirmModal].forEach(modal => {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) toggleModal(modal, false);
-    });
+  [commandPaletteModal, subscriptionsModal, splitBillModal, editModal, budgetModal, savingsModal, shortcutsModal, confirmModal, converterModal].forEach(modal => {
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) toggleModal(modal, false);
+      });
+    }
   });
 }
 
@@ -1350,6 +1433,7 @@ function renderApp() {
   renderBudgetStats();
   renderTransactionList();
   updateChart();
+  renderCategoryMeters();
 }
 
 function renderSummaryCards() {
@@ -1379,6 +1463,11 @@ function renderSummaryCards() {
 
   netAmountEl.textContent = formatCurrency(netBalance);
 
+  // Update Virtual Card Balance
+  if (cardBalanceVal) {
+    cardBalanceVal.textContent = formatCurrency(netBalance);
+  }
+
   if (netBalance >= 0) {
     balanceStatusEl.className = 'stat-sub positive';
     balanceStatusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Positive Cashflow';
@@ -1400,6 +1489,9 @@ function renderSummaryCards() {
   const dailyAvg = thisMonthExpenses / currentDayOfMonth;
   dailyAvgSpendValEl.textContent = formatCurrency(dailyAvg);
   chartSavingsPaceEl.textContent = `${savingsRate}% Saved`;
+
+  // Update Financial Health Wellness Score
+  renderHealthScoreGauge(incomeTotal, expenseTotal, thisMonthExpenses, savingsRate);
 }
 
 function getFilteredTransactions() {
@@ -2055,4 +2147,316 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+// ==========================================
+// 20. VIRTUAL CARD & 3D INTERACTION
+// ==========================================
+
+function initVirtualCard() {
+  if (!virtualCard) return;
+
+  // Restore saved card theme
+  const savedCardTheme = localStorage.getItem('expense_tracker_card_theme') || 'obsidian';
+  setCardTheme(savedCardTheme);
+
+  // Card theme buttons
+  cardThemeDots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      const theme = dot.getAttribute('data-card-theme');
+      setCardTheme(theme);
+    });
+  });
+
+  // 3D Tilt on mousemove
+  if (virtualCardWrapper) {
+    virtualCardWrapper.addEventListener('mousemove', (e) => {
+      const rect = virtualCardWrapper.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const rotateX = ((y - centerY) / centerY) * -12;
+      const rotateY = ((x - centerX) / centerX) * 12;
+
+      virtualCard.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+    });
+
+    virtualCardWrapper.addEventListener('mouseleave', () => {
+      virtualCard.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+    });
+  }
+}
+
+function setCardTheme(theme) {
+  if (!virtualCard) return;
+  virtualCard.classList.remove('card-theme-obsidian', 'card-theme-indigo', 'card-theme-emerald', 'card-theme-rose');
+  virtualCard.classList.add(`card-theme-${theme}`);
+  localStorage.setItem('expense_tracker_card_theme', theme);
+
+  cardThemeDots.forEach(dot => {
+    dot.classList.toggle('active', dot.getAttribute('data-card-theme') === theme);
+  });
+}
+
+// ==========================================
+// 21. FINANCIAL WELLNESS SCORE GAUGE
+// ==========================================
+
+function renderHealthScoreGauge(incomeTotal, expenseTotal, thisMonthExpenses, savingsRate) {
+  if (!healthScoreNumber) return;
+
+  let score = 50; // base score
+
+  // Savings ratio component (up to +30 points)
+  if (incomeTotal > 0) {
+    const savingsRatio = Math.max(0, (incomeTotal - expenseTotal) / incomeTotal);
+    score += Math.min(30, Math.round(savingsRatio * 40));
+  } else if (expenseTotal > 0) {
+    score -= 20;
+  }
+
+  // Budget discipline component (up to +20 points)
+  let budgetDisciplinePercent = 100;
+  if (monthlyBudget > 0) {
+    const budgetBurn = (thisMonthExpenses / monthlyBudget);
+    if (budgetBurn <= 0.8) {
+      score += 20;
+      budgetDisciplinePercent = 95;
+    } else if (budgetBurn <= 1) {
+      score += 10;
+      budgetDisciplinePercent = Math.round((1 - budgetBurn) * 100) + 70;
+    } else {
+      score -= Math.min(30, Math.round((budgetBurn - 1) * 35));
+      budgetDisciplinePercent = Math.max(20, Math.round((1 / budgetBurn) * 60));
+    }
+  }
+
+  // Transaction logging consistency component (+5 bonus if > 3 tx)
+  if (transactions.length >= 3) {
+    score += 5;
+  }
+
+  score = Math.max(10, Math.min(99, Math.round(score)));
+
+  // Update UI Elements
+  healthScoreNumber.innerHTML = `${score}<small>/100</small>`;
+  if (healthScoreFill) {
+    healthScoreFill.style.width = `${score}%`;
+    if (score >= 80) {
+      healthScoreFill.style.background = 'linear-gradient(90deg, #10b981, #06b6d4)';
+    } else if (score >= 60) {
+      healthScoreFill.style.background = 'linear-gradient(90deg, #f59e0b, #3b82f6)';
+    } else {
+      healthScoreFill.style.background = 'linear-gradient(90deg, #f43f5e, #f97316)';
+    }
+  }
+
+  if (gaugeBadge) {
+    if (score >= 80) {
+      gaugeBadge.textContent = 'Excellent';
+      gaugeBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+      gaugeBadge.style.color = '#10b981';
+    } else if (score >= 65) {
+      gaugeBadge.textContent = 'Good';
+      gaugeBadge.style.background = 'rgba(59, 130, 246, 0.15)';
+      gaugeBadge.style.color = '#3b82f6';
+    } else if (score >= 45) {
+      gaugeBadge.textContent = 'Moderate';
+      gaugeBadge.style.background = 'rgba(245, 158, 11, 0.15)';
+      gaugeBadge.style.color = '#f59e0b';
+    } else {
+      gaugeBadge.textContent = 'Attention';
+      gaugeBadge.style.background = 'rgba(244, 63, 94, 0.15)';
+      gaugeBadge.style.color = '#f43f5e';
+    }
+  }
+
+  if (gaugeSavingsRatio) {
+    gaugeSavingsRatio.textContent = `${savingsRate}%`;
+  }
+
+  if (gaugeBudgetDiscipline) {
+    gaugeBudgetDiscipline.textContent = `${budgetDisciplinePercent}%`;
+  }
+
+  if (gaugeSafeDailyBurn) {
+    const today = new Date();
+    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const remainingDays = Math.max(1, daysInMonth - today.getDate() + 1);
+    const remainingBudget = Math.max(0, monthlyBudget - thisMonthExpenses);
+    const safeDaily = remainingBudget / remainingDays;
+    gaugeSafeDailyBurn.textContent = formatCurrency(safeDaily);
+  }
+}
+
+// ==========================================
+// 22. CATEGORY SPENDING DISTRIBUTION METERS
+// ==========================================
+
+function renderCategoryMeters() {
+  if (!categoryMetersList) return;
+
+  const currentMonthPrefix = new Date().toISOString().slice(0, 7);
+  const monthExpenses = transactions.filter(t => t.type === 'expense' && (t.date || '').startsWith(currentMonthPrefix));
+
+  if (monthExpenses.length === 0) {
+    categoryMetersList.innerHTML = '<p class="text-muted" style="font-size:0.8rem; text-align:center; padding:0.5rem 0;">No category spending recorded this month.</p>';
+    return;
+  }
+
+  const totals = {};
+  let totalSpending = 0;
+  monthExpenses.forEach(t => {
+    const amt = Number(t.amount) || 0;
+    totals[t.category] = (totals[t.category] || 0) + amt;
+    totalSpending += amt;
+  });
+
+  const sortedCategories = Object.keys(totals)
+    .sort((a, b) => totals[b] - totals[a])
+    .slice(0, 4);
+
+  categoryMetersList.innerHTML = '';
+
+  sortedCategories.forEach(catName => {
+    const amount = totals[catName];
+    const pct = totalSpending > 0 ? Math.round((amount / totalSpending) * 100) : 0;
+    const meta = getCategoryMeta(catName, 'expense');
+
+    const meterItem = document.createElement('div');
+    meterItem.className = 'cat-meter-item';
+    meterItem.innerHTML = `
+      <div class="cat-meter-info">
+        <span class="cat-meter-name"><i class="fa-solid ${meta.icon}" style="color:${meta.color}; margin-right:4px;"></i> ${escapeHtml(catName)}</span>
+        <span class="cat-meter-amt">${formatCurrency(amount)} (${pct}%)</span>
+      </div>
+      <div class="cat-meter-bar">
+        <div class="cat-meter-fill" style="width: ${pct}%; background-color: ${meta.color};"></div>
+      </div>
+    `;
+    categoryMetersList.appendChild(meterItem);
+  });
+}
+
+// ==========================================
+// 23. LIVE CURRENCY CONVERTER
+// ==========================================
+
+const EXCHANGE_RATES = {
+  INR: 1,
+  USD: 0.012,
+  EUR: 0.011,
+  GBP: 0.0094,
+  JPY: 1.82,
+  CAD: 0.016,
+  AUD: 0.018,
+  AED: 0.044
+};
+
+function openConverterModal() {
+  if (!converterModal) return;
+  toggleModal(converterModal, true);
+  calculateCurrencyConversion();
+  if (convertFromAmount) convertFromAmount.focus();
+}
+
+function calculateCurrencyConversion() {
+  if (!convertFromAmount || !converterResultVal) return;
+
+  const amt = parseFloat(convertFromAmount.value);
+  if (isNaN(amt) || amt <= 0) {
+    converterResultVal.textContent = '—';
+    return;
+  }
+
+  const fromCurr = convertFromCurrency ? convertFromCurrency.value : 'INR';
+  const toCurr = convertToCurrency ? convertToCurrency.value : 'USD';
+
+  // Base is INR
+  const inINR = amt / (EXCHANGE_RATES[fromCurr] || 1);
+  const converted = inINR * (EXCHANGE_RATES[toCurr] || 1);
+
+  const toMeta = CURRENCIES[toCurr] || { symbol: toCurr, locale: 'en-US' };
+  const fromMeta = CURRENCIES[fromCurr] || { symbol: fromCurr, locale: 'en-US' };
+
+  converterResultVal.textContent = `${toMeta.symbol} ${converted.toLocaleString(toMeta.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  if (converterRateLabel) {
+    const singleRate = (1 / (EXCHANGE_RATES[fromCurr] || 1)) * (EXCHANGE_RATES[toCurr] || 1);
+    converterRateLabel.textContent = `1 ${fromCurr} = ${singleRate.toFixed(4)} ${toCurr}`;
+  }
+}
+
+function handleSwapCurrencies() {
+  if (!convertFromCurrency || !convertToCurrency) return;
+  const temp = convertFromCurrency.value;
+  convertFromCurrency.value = convertToCurrency.value;
+  convertToCurrency.value = temp;
+  calculateCurrencyConversion();
+}
+
+// ==========================================
+// 24. DEMO PERSONAS ENGINE
+// ==========================================
+
+const DEMO_PERSONAS = {
+  tech: [
+    { type: 'income', description: 'Tech Lead Salary', category: 'Salary', amount: 125000, daysAgo: 1, method: 'Net Banking', notes: '#stripe' },
+    { type: 'income', description: 'Open Source Consulting', category: 'Freelance & Gig', amount: 28000, daysAgo: 4, method: 'UPI / Online', notes: 'API Audit' },
+    { type: 'expense', description: 'Luxury 2BHK Apartment Rent', category: 'Bills & Utilities', amount: 32000, daysAgo: 2, method: 'Net Banking', notes: '#rent' },
+    { type: 'expense', description: 'Whole Foods & Gourmet Market', category: 'Groceries', amount: 8400, daysAgo: 3, method: 'Credit Card', notes: 'Weekly pantry' },
+    { type: 'expense', description: 'AWS Cloud & Server Hosting', category: 'Others', amount: 4600, daysAgo: 5, method: 'Credit Card', notes: 'Dev infrastructure' },
+    { type: 'expense', description: 'High-End Espresso Cafe', category: 'Food & Dining', amount: 2400, daysAgo: 6, method: 'UPI / Online', notes: 'Team coffee' },
+    { type: 'expense', description: 'Uber Premier Rides', category: 'Transport & Fuel', amount: 3100, daysAgo: 8, method: 'UPI / Online', notes: 'Airport transit' },
+    { type: 'expense', description: 'Gym & Crossfit Membership', category: 'Health & Medical', amount: 3500, daysAgo: 11, method: 'Credit Card', notes: 'Annual plan' }
+  ],
+  freelance: [
+    { type: 'income', description: 'UI/UX Redesign Contract', category: 'Freelance & Gig', amount: 65000, daysAgo: 2, method: 'Net Banking', notes: 'Milestone 2' },
+    { type: 'income', description: 'Logo & Brand Identity Kit', category: 'Freelance & Gig', amount: 22000, daysAgo: 6, method: 'UPI / Online', notes: 'E-commerce client' },
+    { type: 'expense', description: 'Co-working Space Desk', category: 'Bills & Utilities', amount: 9500, daysAgo: 3, method: 'Net Banking', notes: 'WeWork monthly' },
+    { type: 'expense', description: 'Adobe Creative Cloud', category: 'Entertainment', amount: 4230, daysAgo: 5, method: 'Credit Card', notes: 'Design suite' },
+    { type: 'expense', description: 'Supermarket Groceries', category: 'Groceries', amount: 4800, daysAgo: 7, method: 'UPI / Online', notes: 'Weekly basics' },
+    { type: 'expense', description: 'Figma Pro Team Subscription', category: 'Bills & Utilities', amount: 1800, daysAgo: 9, method: 'Credit Card', notes: '' },
+    { type: 'expense', description: 'Dinner with Client', category: 'Food & Dining', amount: 3600, daysAgo: 12, method: 'Credit Card', notes: 'Business dinner' }
+  ],
+  student: [
+    { type: 'income', description: 'Campus Teaching Assistantship', category: 'Salary', amount: 18000, daysAgo: 1, method: 'Net Banking', notes: 'Lab TA' },
+    { type: 'income', description: 'Monthly Family Allowance', category: 'Gifts & Grants', amount: 12000, daysAgo: 3, method: 'UPI / Online', notes: '#parents' },
+    { type: 'expense', description: 'Hostel Room & Mess Fee', category: 'Bills & Utilities', amount: 11000, daysAgo: 2, method: 'Net Banking', notes: '#fixed' },
+    { type: 'expense', description: 'University Textbooks & Notes', category: 'Education', amount: 2200, daysAgo: 4, method: 'UPI / Online', notes: 'Semester 5 books' },
+    { type: 'expense', description: 'Campus Cafeteria & Snacks', category: 'Food & Dining', amount: 1850, daysAgo: 5, method: 'Cash', notes: 'Evening snacks' },
+    { type: 'expense', description: 'Metro Pass Monthly Recharge', category: 'Transport & Fuel', amount: 1200, daysAgo: 8, method: 'UPI / Online', notes: 'Student pass' },
+    { type: 'expense', description: 'Spotify Student Discount', category: 'Entertainment', amount: 69, daysAgo: 10, method: 'Debit Card', notes: '' }
+  ]
+};
+
+function loadPersonaData(personaKey) {
+  const items = DEMO_PERSONAS[personaKey];
+  if (!items || items.length === 0) return;
+
+  transactions = items.map((item, idx) => ({
+    id: `demo_${personaKey}_${Date.now()}_${idx}`,
+    type: item.type,
+    description: item.description,
+    category: item.category,
+    amount: item.amount,
+    date: getRecentDate(item.daysAgo),
+    paymentMethod: item.method,
+    notes: item.notes,
+    createdAt: Date.now() - (item.daysAgo * 86400000)
+  }));
+
+  selectedTxIds.clear();
+  saveTransactions();
+  renderApp();
+  renderSmartInsights();
+
+  const labels = {
+    tech: 'Tech Professional (High Income & Investments)',
+    freelance: 'Freelance Designer (Variable Income & Tools)',
+    student: 'Student (Budget-conscious & Grants)'
+  };
+
+  showToast(`Loaded ${labels[personaKey] || 'scenario'}!`, 'success');
 }

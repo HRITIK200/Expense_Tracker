@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <meta name="theme-color" content="#2563eb" />
-  <meta name="description" content="Next-generation Expense Tracker & Financial Suite with multi-currency, interactive analytics, budget tracking, recurring subscriptions, split bill calculator, and command palette." />
+  <meta name="description" content="Next-generation Expense Tracker & Financial Suite with interactive virtual card, currency converter, analytics, budget tracking, recurring subscriptions, split bill calculator, and command palette." />
   <title>Smart Expense Tracker & Financial Suite</title>
 
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
@@ -26,7 +26,7 @@
   <div class="app-container">
     <!-- ===== TOP NOTIFICATION & GREETING BAR ===== -->
     <div class="top-announcement-bar" id="smartInsightsBar">
-      <div class="insight-badge"><i class="fa-solid fa-sparkles"></i> AI Insights</div>
+      <div class="insight-badge"><i class="fa-solid fa-sparkles"></i> AI Financial Intelligence</div>
       <div class="insight-content" id="smartInsightsContent">
         <span class="insight-text" id="insightText">Analyzing your recent spending patterns...</span>
       </div>
@@ -80,6 +80,12 @@
           </select>
         </div>
 
+        <!-- Currency Converter Trigger -->
+        <button id="openConverterBtn" class="icon-btn header-pill-btn" title="Live Currency Converter">
+          <i class="fa-solid fa-arrow-right-arrow-left"></i>
+          <span class="btn-text-desktop">Exchange</span>
+        </button>
+
         <!-- Theme Accent Switcher -->
         <div class="accent-selector-wrap" title="Theme Color Accent">
           <select id="accentSelect" aria-label="Theme Accent Color">
@@ -125,6 +131,107 @@
         </button>
       </div>
     </header>
+
+    <!-- ===== HERO FINTECH HUB: VIRTUAL CARD + FINANCIAL HEALTH GAUGE ===== -->
+    <section class="hero-fintech-hub">
+      <!-- Interactive Virtual Debit/Credit Card -->
+      <div class="virtual-card-wrapper" id="virtualCardWrapper">
+        <div class="virtual-card card-theme-obsidian" id="virtualCard">
+          <div class="card-glass-gloss"></div>
+          <div class="card-top-row">
+            <div class="card-chip-wrap">
+              <span class="card-chip"></span>
+              <i class="fa-solid fa-wifi card-contactless"></i>
+            </div>
+            <span class="card-network-logo"><i class="fa-solid fa-infinity"></i> PLATINUM</span>
+          </div>
+
+          <div class="card-balance-block">
+            <span class="card-balance-label">AVAILABLE CASH BALANCE</span>
+            <div class="card-balance-val" id="cardBalanceVal">₹0.00</div>
+          </div>
+
+          <div class="card-bottom-row">
+            <div class="card-holder-info">
+              <span class="card-holder-label">CARDHOLDER</span>
+              <span class="card-holder-name">HRITIK PAL</span>
+            </div>
+            <div class="card-number-info">
+              <span class="card-number-masked" id="cardNumberMasked">•••• 4289</span>
+              <span class="card-expiry">08/29</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Theme Switcher Pills -->
+        <div class="card-theme-selector">
+          <button class="card-theme-dot active" data-card-theme="obsidian" title="Obsidian Black"></button>
+          <button class="card-theme-dot" data-card-theme="indigo" title="Royal Indigo"></button>
+          <button class="card-theme-dot" data-card-theme="emerald" title="Cyber Emerald"></button>
+          <button class="card-theme-dot" data-card-theme="rose" title="Sunset Rose"></button>
+        </div>
+      </div>
+
+      <!-- Financial Health Score & Quick Action Dock -->
+      <div class="fintech-quick-dock">
+        <div class="health-gauge-card">
+          <div class="gauge-header">
+            <div class="gauge-title-wrap">
+              <h3><i class="fa-solid fa-shield-heart"></i> Financial Wellness Score</h3>
+              <span class="gauge-score-badge" id="gaugeBadge">Strong</span>
+            </div>
+            <span class="gauge-score-number" id="healthScoreNumber">88<small>/100</small></span>
+          </div>
+
+          <div class="gauge-meter-bar">
+            <div class="gauge-meter-fill" id="healthScoreFill" style="width: 88%;"></div>
+          </div>
+
+          <div class="gauge-breakdown">
+            <div class="gauge-stat">
+              <span class="stat-meta">Savings Ratio</span>
+              <strong id="gaugeSavingsRatio">42%</strong>
+            </div>
+            <div class="gauge-stat">
+              <span class="stat-meta">Budget Discipline</span>
+              <strong id="gaugeBudgetDiscipline">94%</strong>
+            </div>
+            <div class="gauge-stat">
+              <span class="stat-meta">Safe Daily Burn</span>
+              <strong id="gaugeSafeDailyBurn">₹1,250</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action Grid -->
+        <div class="action-dock-grid">
+          <button class="dock-action-btn" id="dockAddExpenseBtn">
+            <i class="fa-solid fa-arrow-down-long text-expense"></i>
+            <span>Add Expense</span>
+          </button>
+          <button class="dock-action-btn" id="dockAddIncomeBtn">
+            <i class="fa-solid fa-arrow-up-long text-income"></i>
+            <span>Add Income</span>
+          </button>
+          <button class="dock-action-btn" id="dockBillsBtn">
+            <i class="fa-solid fa-arrows-rotate text-purple"></i>
+            <span>Manage Bills</span>
+          </button>
+          <button class="dock-action-btn" id="dockSplitBtn">
+            <i class="fa-solid fa-users text-cyan"></i>
+            <span>Split Expense</span>
+          </button>
+          <button class="dock-action-btn" id="dockExchangeBtn">
+            <i class="fa-solid fa-coins text-warning"></i>
+            <span>Exchange Rates</span>
+          </button>
+          <button class="dock-action-btn" id="dockGoalsBtn">
+            <i class="fa-solid fa-bullseye text-primary"></i>
+            <span>Savings Goals</span>
+          </button>
+        </div>
+      </div>
+    </section>
 
     <!-- ===== TOP SUMMARY & FINANCIAL HEALTH STATS ===== -->
     <section class="summary-section">
@@ -181,8 +288,8 @@
       <!-- Financial Health & Savings Card -->
       <div class="stat-card health-card">
         <div class="stat-header">
-          <span class="stat-label">Financial Health</span>
-          <span class="kpi-pill health-pill"><i class="fa-solid fa-heart-pulse"></i> Pace</span>
+          <span class="stat-label">Savings Velocity</span>
+          <span class="kpi-pill health-pill"><i class="fa-solid fa-gauge-high"></i> Active</span>
         </div>
         <div class="health-metrics">
           <div class="health-metric-item">
@@ -349,6 +456,17 @@
             <span class="top-cat-value" id="chartSavingsPace">—</span>
           </div>
         </div>
+
+        <!-- Category Budgets Mini Progress Meters -->
+        <div class="category-meters-section">
+          <div class="category-meters-header">
+            <span>Category Spending Distribution</span>
+            <small>Top categories this month</small>
+          </div>
+          <div class="category-meters-list" id="categoryMetersList">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
       </section>
     </main>
 
@@ -469,16 +587,21 @@
         <div id="txListGrouped" class="tx-grouped-container"></div>
         <ul id="txList" class="tx-list" role="list"></ul>
 
-        <!-- Empty State Message -->
+        <!-- Empty State Message with Persona Selectors -->
         <div id="emptyListState" class="empty-state" style="display: none;">
           <div class="empty-state-icon">
             <i class="fa-solid fa-receipt"></i>
           </div>
           <h3>No Transactions Found</h3>
           <p id="emptyStateMessage">You haven't added any transactions matching this criteria.</p>
-          <button id="loadSampleDataBtn" class="btn btn-primary btn-sm">
-            <i class="fa-solid fa-wand-magic-sparkles"></i> Load Sample Demo Data
-          </button>
+          <div class="demo-personas-wrap">
+            <span class="persona-label">Load Sample Scenario:</span>
+            <div class="persona-buttons">
+              <button class="btn btn-primary btn-sm persona-btn" data-persona="tech"><i class="fa-solid fa-laptop-code"></i> Tech Professional</button>
+              <button class="btn btn-secondary btn-sm persona-btn" data-persona="freelance"><i class="fa-solid fa-pen-nib"></i> Freelancer</button>
+              <button class="btn btn-outline btn-sm persona-btn" data-persona="student"><i class="fa-solid fa-graduation-cap"></i> Student</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -496,6 +619,64 @@
   <button id="fabAddBtn" class="fab-btn" title="Add Transaction" aria-label="Add Transaction">
     <i class="fa-solid fa-plus"></i>
   </button>
+
+  <!-- ===== LIVE CURRENCY CONVERTER MODAL ===== -->
+  <div class="modal-overlay" id="converterModal" aria-hidden="true" role="dialog" aria-labelledby="converterModalTitle">
+    <div class="modal-card converter-card">
+      <div class="modal-header">
+        <h3 id="converterModalTitle"><i class="fa-solid fa-arrow-right-arrow-left"></i> Currency Exchange Converter</h3>
+        <button class="modal-close-btn" id="closeConverterModalBtn" aria-label="Close modal">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-form">
+        <div class="form-row split-row">
+          <div class="form-group">
+            <label for="convertFromAmount">Amount</label>
+            <input type="number" id="convertFromAmount" value="1000" min="0.01" step="0.01" />
+          </div>
+          <div class="form-group">
+            <label for="convertFromCurrency">From</label>
+            <select id="convertFromCurrency">
+              <option value="INR">INR (₹)</option>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="JPY">JPY (¥)</option>
+              <option value="CAD">CAD (C$)</option>
+              <option value="AUD">AUD (A$)</option>
+              <option value="AED">AED</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="converter-swap-row">
+          <button type="button" class="converter-swap-btn" id="swapCurrencyBtn" title="Swap currencies">
+            <i class="fa-solid fa-repeat"></i>
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label for="convertToCurrency">To</label>
+          <select id="convertToCurrency">
+            <option value="USD">USD ($)</option>
+            <option value="INR">INR (₹)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="GBP">GBP (£)</option>
+            <option value="JPY">JPY (¥)</option>
+            <option value="CAD">CAD (C$)</option>
+            <option value="AUD">AUD (A$)</option>
+            <option value="AED">AED</option>
+          </select>
+        </div>
+
+        <div class="converter-result-box">
+          <span class="converter-rate-label" id="converterRateLabel">Exchange Rate</span>
+          <div class="converter-result-val" id="converterResultVal">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ===== GLOBAL COMMAND PALETTE (CMD+K) ===== -->
   <div class="modal-overlay" id="commandPaletteModal" aria-hidden="true" role="dialog">
